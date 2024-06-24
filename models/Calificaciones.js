@@ -9,7 +9,7 @@ const Calificaionchema = new Schema({
 const matriculaSchema = new Schema({
   cursoId: { type: Schema.Types.ObjectId, ref: 'Curso', required: true },
   estudianteId: { type: Schema.Types.ObjectId, ref: 'Usuario', required: true },
-  calificaion: [ScoreSchema]
+  calificaion: [Calificaionchema]
 });
 
 module.exports = mongoose.model('Enrollment', matriculaSchema);
