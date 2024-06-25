@@ -4,6 +4,7 @@ const {hashContrasena,compararContrasena} = require('../utils/hashContraseñas')
 const { generarAccessToken, generarRefreshToken ,verificarToken} = require('../utils/jwt');
 const USUARIO = require('../models/Usuario');
 const mongoose = require('mongoose');
+const nodemailer = require('nodemailer')
 
 // Ruta para iniciar sesión y obtener tokens
 router.post('/login', async (req, res) => {
@@ -178,6 +179,73 @@ router.put('/:id', async (req, res) => {
     return res.status(500).json({ error: 'Error al actulizar los datos' });
   }
 });
+
+
+
+
+// Recuperar contraseña 
+router.post('/sendEmail', async (req,res)=>{
+  const{ correo }= req.body   // Capturamos el correo
+  try{
+      const usuario = await USUARIO.findOne({correo})  //Validamos si el usuario existe
+      if(!usuario){
+          res.status(400).json({ message: "Correo no encontrado"})
+      }
+      const token = generarAccessToken({id: usuario._id})  //Generamos el token
+
+        //Configuración del Transportador de Nodemailer
+      const transporter = nodemailer.createTransport({
+          host: "smtp.office365.com",
+          port: 587,
+          secure: false,
+          auth: {
+              user: process.env.S_EMAIL,
+              pass: process.env.S_PASSWORD,
+          }
+      })
+
+      //Definición de las Opciones del Correo Electrónico
+      const mailOptions = {
+          to: usuario.correo,
+          from: process.env.S_EMAIL,
+          subject: 'Recuperación de Contraseña',
+          text: `Haz clic en el siguiente enlace para recuperar tu contraseña: http://localhost:3000/api/public/changePassword/${token}` 
+          //Depende de el puerto y la direccion de Frontend
+      };
+
+      await transporter.sendMail(mailOptions)
+      res.status(200).json({ message: "Correo de recuperacion enviado" })
+ 
+    }catch(err){
+    res.status(401).json({message: "Correo de recuperación no enviado"})
+  }
+})
+
+
+router.post('/changePassword', async (req,res)=>{
+  const { token } = req.params;   //Captura del Token y la Nueva Contraseña
+    const { newPassword } = req.body;
+
+    try{//Verificación del Token
+     const decode = verificarToken(token, process.env.JWT_SECRET)
+      if(!decode){
+        res.status(401).json({message: "Token invalido"})
+      }
+      const usuario = await USUARIO.findOne({ _id: decode.id }) //Búsqueda del Usuario
+
+      if (!usuario) {
+        return res.status(401).json({ message: 'El Usuario no fue encontrado' });
+    }
+    const contrasenaHasheada = await hashContrasena(newPassword) //Hash de la Nueva Contraseña
+    usuario.contrasena=contrasenaHasheada
+    await usuario.save()   //Guardar el Usuario Actualizado
+
+    res.status(200).json({message:'Contraseña actualizada exitosamente'})
+
+    }catch(err){
+      res.status(401).json({message: 'Error al reestablecer la contraseña'})
+    }
+})
 
 module.exports = router;
 
