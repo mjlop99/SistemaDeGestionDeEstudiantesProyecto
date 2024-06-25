@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const rutasPublicas=require('./routes/public')
+const rutasPruebas=require('./routes/pruebas')
 const APP= express();
 const PORT=process.env.PORT || 3000;
 
@@ -18,3 +19,4 @@ APP.listen(PORT, () => {
   });
 
 APP.use("/api/public",rutasPublicas)
+APP.use("/api/public",rutasPruebas)
