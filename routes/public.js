@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const {hashContrasena,compararContrasena} = require('../utils/hashContraseñas');
-const { generarAccessToken, generarRefreshToken ,verificarToken} = require('../utils/jwt');
+const { hashContrasena, compararContrasena } = require('../utils/hashContraseñas');
+const { generarAccessToken, generarRefreshToken, verificarToken } = require('../utils/jwt');
 const USUARIO = require('../models/Usuario');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer')
@@ -39,36 +39,37 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/registro', async (req, res) => {
-    const { nombre, correo, contrasena, role } = req.body;
-  
-    try {
-      // Verificar si el usuario ya existe por correo electrónico
-      const usuarioExistente = await USUARIO.findOne({ correo });
-  
-      if (usuarioExistente) {
-        return res.status(401).send('Error: este correo ya ha sido registrado');
-      }
-  
-      // Hash de la contraseña
-      const contrasenaHasheada = await hashContrasena(contrasena);
-  
-      // Crear el nuevo usuario
-      const nuevoUsuario = new USUARIO({
-        nombre,
-        correo,
-        contrasena: contrasenaHasheada,
-        role
-      });
-  
-      // Guardar el nuevo usuario en la base de datos
-      await nuevoUsuario.save();
-  
-      return res.status(200).json({ message: 'Usuario registrado exitosamente', nuevoUsuario });
-    } catch (error) {
-      console.error('Error al registrar el usuario:', error);
-      return res.status(500).send('Ha ocurrido un error al registrar el usuario');
+  const { nombres, apellidos, correo, contrasena, role } = req.body;
+
+  try {
+    // Verificar si el usuario ya existe por correo electrónico
+    const usuarioExistente = await USUARIO.findOne({ correo });
+
+    if (usuarioExistente) {
+      return res.status(401).send('Error: este correo ya ha sido registrado');
     }
-  });
+
+    // Hash de la contraseña
+    const contrasenaHasheada = await hashContrasena(contrasena);
+
+    // Crear el nuevo usuario
+    const nuevoUsuario = new USUARIO({
+      nombres,
+      apellidos,
+      correo,
+      contrasena: contrasenaHasheada,
+      role
+    });
+
+    // Guardar el nuevo usuario en la base de datos
+    await nuevoUsuario.save();
+
+    return res.status(200).json({ message: 'Usuario registrado exitosamente', nuevoUsuario });
+  } catch (error) {
+    console.error('Error al registrar el usuario:', error);
+    return res.status(500).send('Ha ocurrido un error al registrar el usuario');
+  }
+});
 
 // Ruta para refrescar el token de acceso
 router.post('/refresh-token', async (req, res) => {
@@ -134,7 +135,7 @@ router.get('/tiposUsuario', async (req, res) => {
 router.get('/usuarios', async (req, res) => {
   try {
     // Obtener todos los usuarios y seleccionar solo el campo 'correo'
-    
+
     const correos = await USUARIO.find({}, 'correo');
     return res.status(200).json(correos);
   } catch (error) {
@@ -184,67 +185,67 @@ router.put('/:id', async (req, res) => {
 
 
 // Recuperar contraseña 
-router.post('/sendEmail', async (req,res)=>{
-  const{ correo }= req.body   // Capturamos el correo
-  try{
-      const usuario = await USUARIO.findOne({correo})  //Validamos si el usuario existe
-      if(!usuario){
-          res.status(400).json({ message: "Correo no encontrado"})
+router.post('/sendEmail', async (req, res) => {
+  const { correo } = req.body   // Capturamos el correo
+  try {
+    const usuario = await USUARIO.findOne({ correo })  //Validamos si el usuario existe
+    if (!usuario) {
+      res.status(400).json({ message: "Correo no encontrado" })
+    }
+    const token = generarAccessToken({ id: usuario._id })  //Generamos el token
+
+    //Configuración del Transportador de Nodemailer
+    const transporter = nodemailer.createTransport({
+      host: "smtp.office365.com",
+      port: 587,
+      secure: false,
+      auth: {
+        user: process.env.S_EMAIL,
+        pass: process.env.S_PASSWORD,
       }
-      const token = generarAccessToken({id: usuario._id})  //Generamos el token
+    })
 
-        //Configuración del Transportador de Nodemailer
-      const transporter = nodemailer.createTransport({
-          host: "smtp.office365.com",
-          port: 587,
-          secure: false,
-          auth: {
-              user: process.env.S_EMAIL,
-              pass: process.env.S_PASSWORD,
-          }
-      })
+    //Definición de las Opciones del Correo Electrónico
+    const mailOptions = {
+      to: usuario.correo,
+      from: process.env.S_EMAIL,
+      subject: 'Recuperación de Contraseña',
+      text: `Haz clic en el siguiente enlace para recuperar tu contraseña: http://localhost:3000/api/public/changePassword/${token}`
+      //Depende de el puerto y la direccion de Frontend
+    };
 
-      //Definición de las Opciones del Correo Electrónico
-      const mailOptions = {
-          to: usuario.correo,
-          from: process.env.S_EMAIL,
-          subject: 'Recuperación de Contraseña',
-          text: `Haz clic en el siguiente enlace para recuperar tu contraseña: http://localhost:3000/api/public/changePassword/${token}` 
-          //Depende de el puerto y la direccion de Frontend
-      };
+    await transporter.sendMail(mailOptions)
+    res.status(200).json({ message: "Correo de recuperacion enviado" })
 
-      await transporter.sendMail(mailOptions)
-      res.status(200).json({ message: "Correo de recuperacion enviado" })
- 
-    }catch(err){
-    res.status(401).json({message: "Correo de recuperación no enviado"})
+  } catch (err) {
+    res.status(401).json({ message: "Correo de recuperación no enviado" })
   }
 })
 
 
-router.post('/changePassword', async (req,res)=>{
+router.post('/changePassword', async (req, res) => {
   const { token } = req.params;   //Captura del Token y la Nueva Contraseña
-    const { newPassword } = req.body;
+  const { newPassword } = req.body;
 
-    try{//Verificación del Token
-     const decode = verificarToken(token, process.env.JWT_SECRET)
-      if(!decode){
-        res.status(401).json({message: "Token invalido"})
-      }
-      const usuario = await USUARIO.findOne({ _id: decode.id }) //Búsqueda del Usuario
+  try {//Verificación del Token
+    const decode = verificarToken(token, process.env.JWT_SECRET)
+    if (!decode) {
+      res.status(401).json({ message: "Token invalido" })
+    }
+    const usuario = await USUARIO.findOne({ _id: decode.id }) //Búsqueda del Usuario
 
-      if (!usuario) {
-        return res.status(401).json({ message: 'El Usuario no fue encontrado' });
+    if (!usuario) {
+      return res.status(401).json({ message: 'El Usuario no fue encontrado' });
     }
     const contrasenaHasheada = await hashContrasena(newPassword) //Hash de la Nueva Contraseña
-    usuario.contrasena=contrasenaHasheada
+    usuario.contrasena = contrasenaHasheada
     await usuario.save()   //Guardar el Usuario Actualizado
 
-    res.status(200).json({message:'Contraseña actualizada exitosamente'})
+    res.status(200).json({ message: 'Contraseña actualizada exitosamente' })
 
-    }catch(err){
-      res.status(401).json({message: 'Error al reestablecer la contraseña'})
-    }
+  } catch (err) {
+    res.status(401).json({ message: 'Error al reestablecer la contraseña' })
+  }
 })
 
 module.exports = router;
