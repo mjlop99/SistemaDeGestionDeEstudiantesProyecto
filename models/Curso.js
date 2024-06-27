@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { schema } = require('./Usuario');
 const Schema = mongoose.Schema;
 
 const cursoSchema = new Schema({
@@ -11,27 +10,43 @@ const cursoSchema = new Schema({
     type: String,
     required: true
   },
-  actividades: [
-    {
-      type: String,
-      unique: true
-    }
-  ]
+  
+  actividades: {
+    id:{
+      type:String,
+      required:true
+    },
+    actividadesEStablecidas:[
+      {
+        type: String,
+        default:null
+      }
+    ]
+  }
   ,
+  
   estudiantes: [
     {
-      nombre: {
+      _id: {
         type: String,
         required: true
       },
-      actividades: {
-        type: Schema.Types.Mixed,
-        default: {}
-      }
+      actividadesAsignadas:[
+        {
+          actividadNombre:{
+            type: String,
+          },
+          nota:{
+            type: Number,
+            required: false,
+            default:0.00
+          },
+        }
+      ]
     }
   ]
-});
 
+});
 
 
 

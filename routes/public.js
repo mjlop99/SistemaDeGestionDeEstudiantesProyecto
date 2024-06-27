@@ -100,6 +100,14 @@ router.post('/refresh-token', async (req, res) => {
 // Buscar usuarios por id
 router.get('/usuario/:id', async (req, res) => {
   const { id } = req.params;
+  const{token}=req.body
+
+  const decoded=verificarToken(token,process.env.JWT_SECRET)
+
+  if (decoded!=null) {
+    console.log(decoded);
+  }
+
 
   // Validar que el id sea un ObjectId válido
   if (!mongoose.Types.ObjectId.isValid(id)) {
