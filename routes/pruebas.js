@@ -8,26 +8,34 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 
-router.post('/curso/crear/:id', async (req, res) => {
-  const { nombre, profesor } = req.body;
-  const { id } = req.params;
+router.post('/curso/crear/', async (req, res) => {
+  const { nombre } = req.body;
+
+  const accessToken = req.headers['accesstoken'];
+  const refreshToken = req.headers['refreshtoken'];
 
   try {
+    const decoded=jwt.verify(accessToken,process.env.JWT_SECRET)
+    if (!decoded) {
+      res.status(404).send({messeage:"No estas authorizado"})
+    }
+    
     // Verificar si el profesor existe
-    const profesorExistente = await USUARIO.findById(id);
+    const profesorExistente = await USUARIO.findById(decoded.id);
     if (!profesorExistente || profesorExistente.role !== 'maestro') {
       return res.status(401).send('Error: tú no eres un profesor válido');
     }
+    const profesor=decoded.id
 
   // Verificar si el profesor ya ha creado este curso
   
-  const cursoExistente = await CURSO.findOne({ nombre, profesor });
+  const cursoExistente = await CURSO.findOne({ nombre, profesor});
     if (cursoExistente) {
       return res.status(401).send('Error: este curso ya ha sido registrado');
     }
 
     const actividadesEStablecidads={
-      id:`${id}${nombre}`,
+      id:`${profesor}${nombre}`,
       actividadesEStablecidas:[]
     }
     // Crear el nuevo curso
@@ -51,12 +59,10 @@ module.exports = router;
 
 
 
-//Ruta para obtener todos los tipos de usuario
+//Ruta para obtener todos los tipos de Curso
 router.get('/cursos', async (req, res) => {
   const accessToken = req.headers['accesstoken'];
   const refreshToken = req.headers['refreshtoken'];
-  console.log('AccessToken:', accessToken);
-  console.log('RefreshToken:', refreshToken);
   try {
     const cursos = await CURSO.find({});
     const cursosDisponibles = cursos.map(c => ({ nombre: c.nombre, profesor: c.profesor, alumnos: c.estudiantes.length }))
@@ -78,7 +84,7 @@ router.get('/mis-cursos/', async (req, res) => {
     const id=decoded.id
     const cursos = await CURSO.find({profesor:id});
     const profesor=await USUARIO.findOne({_id:decoded.id,role:"maestro"})
-    const cursosDisponibles = cursos.map(c => ({ nombre: c.nombre, profesor: profesor.nombres, alumnos: c.estudiantes.length }))
+    const cursosDisponibles = cursos.map(c => ({id:c._id, nombre: c.nombre, profesor: profesor.nombres, alumnos: c.estudiantes.length }))
     return res.status(200).json(cursosDisponibles);
   } catch (error) {
     console.error('Error al obtener los cursos:', error);
@@ -87,9 +93,16 @@ router.get('/mis-cursos/', async (req, res) => {
 });
 
 
-//obtener el curso por id
+//obtener el curso por Token
 router.get('/curso/:id', async (req, res) => {
-  const id = req.params.id;
+  const id=req.params.id
+  const accessToken = req.headers['accesstoken'];
+  const refreshToken = req.headers['refreshtoken'];
+
+  const decoded=jwt.verify(accessToken,process.env.JWT_SECRET)
+    if (!decoded) {
+      res.status(404).send({messeage:"No estas authorizado"})
+    }
   try {
 
     const cursoExistente = await CURSO.findOne({ _id: id });
@@ -99,7 +112,7 @@ router.get('/curso/:id', async (req, res) => {
     }
 
 
-    return res.status(200).json({ message: 'curso encontrado exitosamente', cursoExistente });
+    return res.status(200).send(cursoExistente);
   } catch (error) {
     console.error('Error al buscar el nuevoCurso:', error);
     return res.status(500).send('Ha ocurrido un error al buscar el nuevoCurso');
@@ -108,10 +121,18 @@ router.get('/curso/:id', async (req, res) => {
 
 //agregar una actividad a todos los alumnos
 router.post('/curso/:id/actividad', async (req, res) => {
-  const { actividad } = req.body;
+  const {actividad} = req.body;
   const id = req.params.id;
+  const accessToken = req.headers['accesstoken'];
+  const refreshToken = req.headers['refreshtoken'];
 
+  console.log(actividad);
+  
   try {
+    const decoded=jwt.verify(accessToken,process.env.JWT_SECRET)
+    if (!decoded) {
+      res.status(404).send({messeage:"No estas authorizado"})
+    }
     // Verificar si actividades no está vacío
     if (!actividad || actividad.length === 0) {
       return res.status(400).send('Error: no has enviado ninguna actividad');
@@ -152,7 +173,12 @@ router.delete('/curso/:id/actividad', async (req, res) => {
   const { actividad } = req.body; // Cambiado para aceptar una sola actividad en vez de un array
   const id = req.params.id;
 
+  const accessToken = req.headers['accesstoken'];
+  const refreshToken = req.headers['refreshtoken'];
   try {
+    if (!decoded) {
+      res.status(404).send({messeage:"No estas authorizado"})
+    }
     // Verificar si actividad no está vacío
     if (!actividad) {
       return res.status(400).send('Error: no has enviado ninguna actividad');
@@ -196,7 +222,14 @@ router.post('/curso/:id/matricular', async (req, res) => {
   const idCurso = req.params.id;
   const idAlumno = req.body.idEstudiante;
 
+  const accessToken = req.headers['accesstoken'];
+  const refreshToken = req.headers['refreshtoken'];
+
   try {
+    const decoded=verificarToken(accessToken,process.env.JWT_SECRET)
+    if (!decoded) {
+      res.status(404).send({messeage:"No estas authorizado"})
+    }
     // Verificar si el curso ya se ha credo creado este curso 
     const cursoExistente = await CURSO.findOne({ _id: idCurso });
     if (!cursoExistente) {
@@ -204,7 +237,8 @@ router.post('/curso/:id/matricular', async (req, res) => {
     }
     // Verificar si el alumno existe ya se ha credo creado este curso 
     const estudianteExistente = await USUARIO.findOne({ _id: idAlumno, role: "estudiante" });
-
+    const nombresEstudiante=`${estudianteExistente.nombres}`
+    const apellidosEstudiante=`${estudianteExistente.apellidos}`
     if (!estudianteExistente) {
       return res.status(401).send('Error: este alumno no ha sido registrado');
     }
@@ -213,6 +247,8 @@ router.post('/curso/:id/matricular', async (req, res) => {
     console.log(actividades);
     const nuevoEstudiante = {
       _id: idAlumno,
+      nombres:nombresEstudiante,
+      apellidos:apellidosEstudiante,
       actividadesAsignadas: actividades.map(actividad => ({ actividadNombre: actividad, nota: 0.00 }))
     };
 
@@ -263,8 +299,14 @@ router.delete('/curso/:id/matricular', async (req, res) => {
 router.put('/curso/:id/notas/cambios', async (req, res) => {
   const idCurso = req.params.id;
   const { idEstudiante, actividad, nota } = req.body;
+  const accessToken = req.headers['accesstoken'];
+  const refreshToken = req.headers['refreshtoken'];
 
   try {
+    const decoded=jwt.verify(accessToken,process.env.JWT_SECRET)
+    if (!decoded) {
+      res.status(404).send({messeage:"No estas authorizado"})
+    }
     // Verificar si el curso existe
     const cursoExistente = await CURSO.findById(idCurso);
 

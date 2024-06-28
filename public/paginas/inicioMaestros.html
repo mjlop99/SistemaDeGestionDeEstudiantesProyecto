@@ -7,7 +7,6 @@
     <title>Sistema de gestion Estudiantil</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <link rel="stylesheet" href="../css/style.css">
     <style>
         .navbar-custom {
             background-color: #401a64 !important;
@@ -19,7 +18,12 @@
 
         main {
             h1 {
+                width: 100%;
                 margin: 0 20px;
+            }
+
+            .InfoCursoActividad {
+                display: flex;
             }
 
             .cursos-container {
@@ -28,12 +32,78 @@
                 flex-wrap: wrap;
                 gap: 8px;
 
+
                 .curso {
                     padding: 10px;
                     width: 300px;
                     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    transition: transform 500ms ease-in-out, margin-right 200ms ease-in-out;
+
+                }
+
+                .curso:hover {
+                    transform: scale(1.15);
+                    margin-right: 0 10px 0 0;
                 }
             }
+
+            #InfoCursoActividadContainer {
+                display: none;
+                justify-content: space-around;
+
+                #cursoInfoContainer {
+                    margin: 40px;
+
+                    #info-curso {
+                        display: flex;
+                        flex-direction: column;
+                    }
+                }
+
+                .agregarActividad {
+                    margin: 40px;
+
+                    form {
+                        display: flex;
+                        gap: 4px;
+                    }
+
+                }
+            }
+
+            #estudiantes-info {
+                display: none;
+                flex-direction: column;
+                justify-content: center;
+                margin: 80px;
+
+                .btn-container {
+                    display: flex;
+                    justify-content: center;
+                    margin: 20px;
+                }
+
+                .btn-custom {
+                    margin: 0 16px !important;
+                    padding: 8px !important;
+                }
+
+                .btn-limited {
+                    width: auto;
+                    /* Ajusta el ancho automáticamente al contenido */
+                    margin: 20px auto;
+                    /* Centra el botón horizontalmente */
+                }
+
+                .table {
+                    width: 75%;
+                    max-width: 90%;
+                    margin: 0 auto;
+
+                }
+            }
+
+
         }
     </style>
 </head>
@@ -71,57 +141,262 @@
 
 
     <main>
-        <h1>Tus Cursos</h1>
         <div class="cursos-container" id="cursosContainer">
+            <h1>Tus Cursos</h1>
+        </div>
+        <div class="InfoCursoActividad" id="InfoCursoActividadContainer">
+            <div id="cursoInfoContainer">
+                <div id="info-curso">
+
+                </div>
+
+            </div>
+            <div class="agregarActividad">
+                <h3>
+                    <p>Agregar Una nueva Actividad a tu Curso</p>
+                </h3>
+                <form action="POST">
+                    <label for="Actividad">Actividad:</label>
+                    <input type="text" id="Actividad" placeholder="Nombre de la nueva actividad">
+                    <input type="button" id="btnAgregarActividad" value="Agregar">
+                </form>
+
+            </div>
+        </div>
+        <div id="estudiantes-info" class="container-mt5">
+            <div class="btn-container">
+                <button type="button" id="btnAgregar" class="btn btn-secondary btn-limited btn-custom">Agregar
+                    Alumno</button>
+                <button type="button" id="btnCancelar"
+                    class="btn btn-secondary btn-limited btn-custom">Cancelar</button>
+                <button type="button" id="btnImprimir"
+                    class="btn btn-secondary btn-limited btn-custom">Imprimir</button>
+            </div>
+            <table class="table table-resposive table-bordered table-hover table-striped" id="tablaEStudiantes">
+                <thead id="encabezado">
+                    <tr id="encabezadosTablaEStudiantes" class="table-active">
+
+                        <!-- Agrega más columnas de actividades según sea necesario -->
+                    </tr>
+                </thead>
+                <tbody id="infoTablaEstudiantes">
+
+                </tbody>
+            </table>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-        crossorigin="anonymous"></script>
     <script>
-        const cursosContainer = document.getElementById('cursoContainer');
-        const curso = document.getElementById('cursoContainer');
+        const cursosContainer = document.getElementById('cursosContainer');
+        const infoCurso = document.getElementById('info-curso');
+        const InfoCursoActividadContainer = document.getElementById('InfoCursoActividadContainer');
+        const estudiantesInfo = document.getElementById('estudiantes-info');
+        const tablaEStudiantes = document.getElementById('tablaEStudiantes');
+        const encabezado = document.getElementById('encabezado');
+        const encabezadosTablaEStudiantes = document.getElementById('encabezadosTablaEStudiantes');
+        const infoTablaEstudiantes = document.getElementById('infoTablaEstudiantes');
+        const btnCancelar = document.getElementById('btnCancelar');
 
-        let cursos;
 
-    document.addEventListener('DOMContentLoaded', async () => {
         const accessToken = localStorage.getItem("accessToken");
         const refreshToken = localStorage.getItem("refreshToken");
 
-        try {
-            // Realizar solicitud GET para obtener los cursos
-            const response = await fetch('http://localhost:3000/api/public/mis-cursos', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'AccessToken': accessToken,
-                    'RefreshToken': refreshToken
-                }
-            });
+        const btnAgregarActividad = document.getElementById('btnAgregarActividad');
+        let cursoSelecionado;
+        let actividadEnvio;
 
-            if (response.ok) {
-                const data = await response.json();
-                const cursosContainer = document.getElementById('cursosContainer');
-                data.forEach(curso => {
-                    const cursoElement = document.createElement('div');
-                    cursoElement.classList.add('curso');
-                    cursoElement.innerHTML = `
-                        <p class="curso-nombre">Curso: ${curso.nombre}</p>
-                        <p class="curso-profesor">Profesor: ${curso.profesor}</p>
-                        <p class="curso-estudiantes-num">Alumnos inscriptos: ${curso.alumnos}</p>
+
+
+        btnCancelar.addEventListener('click', () => {
+            hacerVisible(cursosContainer, "flex");
+            hacerInvisible(InfoCursoActividadContainer)
+            hacerInvisible(estudiantesInfo)
+        })
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            //TRAER DATOS DEL PROFESOR
+
+
+
+            // TRAER DATOS DE TODOS LOS CURSOS DEL PROFESOR
+            const data = await peticion('http://localhost:3000/api/public/mis-cursos', {
+                'Content-Type': 'application/json',
+                'AccessToken': accessToken,
+                'RefreshToken': refreshToken
+            }, {}, 'GET');
+
+            data.forEach(curso => {
+                const cursoElement = document.createElement('div');
+                cursoElement.classList.add('curso');
+                cursoElement.innerHTML = `
+                    <p class="curso-nombre">Curso: ${curso.nombre}</p>
+                    <p class="curso-profesor">Profesor: ${curso.profesor}</p>
+                    <p class="curso-estudiantes-num">Alumnos inscriptos: ${curso.alumnos}</p>
+                    <p class="curso-estudiantes-num">Código: ${curso.id}</p>
+                `;
+
+
+                cursosContainer.appendChild(cursoElement);
+
+                // INFO DEL CURSO CLICKEADO
+                cursoElement.addEventListener('click', async () => {
+
+                    hacerInvisible(cursosContainer)
+                    hacerVisible(InfoCursoActividadContainer, "flex")
+                    cursoSelecionado = curso.id;
+
+                    const dataCurso = await peticion(`http://localhost:3000/api/public/curso/${curso.id}`, {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    }, {}, 'GET');
+
+
+
+                    let actividadesHTML = '';
+
+
+                    infoCurso.innerHTML = `
+                        <h2>Información del Curso</h2>
+                        <p class="curso-nombre">Curso: ${dataCurso.nombre}</p>
+                        <p class="curso-profesor">Profesor: ${dataCurso.profesor}</p>
+                        <p class="curso-profesor">Actividades: ${dataCurso.actividades.actividadesEStablecidas.join(",")}</p>
+                        <p class="curso-estudiantes-num">Alumnos inscriptos: ${dataCurso.estudiantes.length}</p>
                     `;
-                    cursosContainer.appendChild(cursoElement);
+
+                    estudiantesInfo.style.display = 'flex';
+
+                    // Crear tabla dinámicamente
+                    encabezadosTablaEStudiantes.innerHTML = "";
+
+                    // Crear encabezados
+                    let listaDeEncabezados = ['#', 'Nombres', 'Apellidos'];
+                    const actividadesEvaluadas = dataCurso.actividades.actividadesEStablecidas;
+                    listaDeEncabezados = listaDeEncabezados.concat(actividadesEvaluadas);
+                    listaDeEncabezados.push("modificar")
+
+                    listaDeEncabezados.forEach(encabezado => {
+                        const th = document.createElement('th');
+                        th.innerHTML = `<th scope="col" class="col-2">${encabezado}</th>`;
+                        encabezadosTablaEStudiantes.appendChild(th);
+                    });
+                    encabezado.appendChild(encabezadosTablaEStudiantes);
+                    tablaEStudiantes.appendChild(encabezado);
+
+                    infoTablaEstudiantes.innerHTML = ""
+                    const estudiantes = dataCurso.estudiantes;
+
+                    estudiantes.forEach((e, index) => {
+                        const actividadesEstudiante = e.actividadesAsignadas
+                        let notas = ''
+                        actividadesEstudiante.forEach(act => {
+                            notas += `<td class="col-2"><input type="text" class="form-control" value="${act.nota}"</td>`
+                        });
+
+                        infoTablaEstudiantes.innerHTML = `
+                        <tr>
+                            <td class="col-2">#${index + 1}</td>
+                            <td class="col-2">${e.nombres}</td>
+                            <td class="col-2">${e.apellidos}</td>
+                            ${notas}
+                            <td class="col-2"><button type="button" class="btn btn-custom btn-limited" id="btn-modificarNota${index + 1}">Modificar</button></td>
+                        </tr>
+                        `
+
+                        const btn = document.getElementById(`btn-modificarNota${index + 1}`)
+                        btn.addEventListener
+                        btn.addEventListener('click', () => {
+                            console.log("cambio");
+                        })
+
+                    })
+
+
                 });
-            } else {
-                alert("NO HAY DATOS");
-            }
-        } catch (error) {
-            console.error('Error al obtener cursos:', error);
-            alert('Error al obtener cursos');
+            });
+        });
+
+
+       /* btnAgregarActividad.addEventListener("click", async (e) => {
+            console.log(accessToken);
+            console.log(cursoSelecionado);
+            const agregarActividadPeticion = await peticion(`http://localhost:3000/api/public/curso/${cursoSelecionado}/actividad`, {
+                'Content-Type': 'application/json',
+                'AccessToken': accessToken,
+                'RefreshToken': refreshToken
+            }, {
+                JSON.stringify({ actividad: actividadValue })
+            }, 'POST');
+
+            actividadEnvio = actividadEnvio
+
+        });*/
+
+
+        btnAgregarActividad.addEventListener('click', async (e) => {
+            e.preventDefault(); // Evita el envío del formulario
+
+            // Obtén el valor del input de actividad
+            const actividadValue = document.getElementById('Actividad').value;
+
+            // Realiza la petición para agregar la actividad
+            const response = await fetch(`http://localhost:3000/api/public/curso/${cursoSelecionado}/actividad`, {
+                method:"POST",
+                headers:{
+                    'Content-Type': 'application/json',
+                'AccessToken': accessToken,
+                'RefreshToken': refreshToken
+                },
+                body:JSON.stringify({actividad:actividadValue})
+        });
+        
+        if (response.ok) {
+            // Recargar la página si la actividad se agregó correctamente
+            window.location.reload();
+        } else {
+            // Mostrar un mensaje de error si la solicitud no fue exitosa
+            alert("No se pudo agregar la actividad.");
         }
     });
 
+        const hacerVisible = (element, display) => {
+            element.style.display = display
+        }
+        const hacerInvisible = (element) => {
+            element.style.display = 'none'
+        }
+
+        const peticion = async (url, headers, body, type) => {
+            let response;
+            try {
+                const options = {
+                    method: type,
+                    headers: headers,
+                };
+
+                if (type !== 'GET') {
+                    options.body = JSON.stringify(body); // Convertir el cuerpo a JSON
+                }
+
+                response = await fetch(url, options);
+
+                if (!response.ok) {
+                    throw new Error('Error en la respuesta del servidor');
+                }
+
+                const data = await response.json();
+                return data;
+
+            } catch (error) {
+                console.error('Error al realizar la petición:', error);
+                alert('Error al realizar la petición');
+            }
+        };
+
+
+
     </script>
+
+
 </body>
 
 </html>

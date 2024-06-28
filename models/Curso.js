@@ -31,6 +31,15 @@ const cursoSchema = new Schema({
         type: String,
         required: true
       },
+
+    nombres:{
+      type:String,
+      required:true
+    },
+    apellidos:{
+      type:String,
+      required:true
+    },
       actividadesAsignadas:[
         {
           actividadNombre:{
