@@ -55,7 +55,7 @@ router.post('/curso/crear/', async (req, res) => {
   }
 });
 
-module.exports = router;
+
 
 
 
@@ -84,7 +84,7 @@ router.get('/mis-cursos/', async (req, res) => {
     const id=decoded.id
     const cursos = await CURSO.find({profesor:id});
     const profesor=await USUARIO.findOne({_id:decoded.id,role:"maestro"})
-    const cursosDisponibles = cursos.map(c => ({id:c._id, nombre: c.nombre, profesor: profesor.nombres, alumnos: c.estudiantes.length }))
+    const cursosDisponibles = cursos.map(c => ({id:c._id, nombre: c.nombre, profesor: profesor.nombres, alumnos: c.estudiantes.length ,actividades:c.actividades.actividadesEStablecidas}))
     return res.status(200).json(cursosDisponibles);
   } catch (error) {
     console.error('Error al obtener los cursos:', error);
@@ -99,10 +99,12 @@ router.get('/curso/:id', async (req, res) => {
   const accessToken = req.headers['accesstoken'];
   const refreshToken = req.headers['refreshtoken'];
 
-  const decoded=jwt.verify(accessToken,process.env.JWT_SECRET)
+  const decoded=verificarToken(accessToken,process.env.JWT_SECRET)
     if (!decoded) {
       res.status(404).send({messeage:"No estas authorizado"})
     }
+    console.log(decoded);
+
   try {
 
     const cursoExistente = await CURSO.findOne({ _id: id });
@@ -127,7 +129,7 @@ router.post('/curso/:id/actividad', async (req, res) => {
   const refreshToken = req.headers['refreshtoken'];
 
   console.log(actividad);
-  
+  console.log(id);
   try {
     const decoded=jwt.verify(accessToken,process.env.JWT_SECRET)
     if (!decoded) {
@@ -168,7 +170,7 @@ router.post('/curso/:id/actividad', async (req, res) => {
 
 
 
-//elimina una actividad a todos los estudiantes
+//elimina una actividad curso y a todos los estudiantes
 router.delete('/curso/:id/actividad', async (req, res) => {
   const { actividad } = req.body; // Cambiado para aceptar una sola actividad en vez de un array
   const id = req.params.id;
@@ -176,6 +178,7 @@ router.delete('/curso/:id/actividad', async (req, res) => {
   const accessToken = req.headers['accesstoken'];
   const refreshToken = req.headers['refreshtoken'];
   try {
+    const decoded=verificarToken(accessToken,process.env.JWT_SECRET)
     if (!decoded) {
       res.status(404).send({messeage:"No estas authorizado"})
     }
@@ -191,19 +194,19 @@ router.delete('/curso/:id/actividad', async (req, res) => {
     }
 
     // Verificar si existe la actividad
-    const actividadIndex = cursoExistente.actividades.findIndex(act => act === actividad);
+    const actividadIndex = cursoExistente.actividades.actividadesEStablecidas.findIndex(act => act === actividad);
     if (actividadIndex === -1) {
       return res.status(404).send('Error: esta actividad no existe en el curso');
     }
 
     // Eliminar la actividad del curso
-    cursoExistente.actividades.splice(actividadIndex, 1);
+    cursoExistente.actividades.actividadesEStablecidas.splice(actividadIndex, 1);
 
     // Eliminar la actividad de los alumnos
     cursoExistente.estudiantes.forEach(alumno => {
-      const alumnoActividadIndex = alumno.actividades.findIndex(act => act.actividadNombre === actividad);
+      const alumnoActividadIndex = alumno.actividadesAsignadas.findIndex(act => act.actividadNombre === actividad);
       if (alumnoActividadIndex !== -1) {
-        alumno.actividades.splice(alumnoActividadIndex, 1);
+        alumno.actividadesAsignadas.splice(alumnoActividadIndex, 1);
       }
     });
 
@@ -243,8 +246,6 @@ router.post('/curso/:id/matricular', async (req, res) => {
       return res.status(401).send('Error: este alumno no ha sido registrado');
     }
     const actividades = cursoExistente.actividades.actividadesEStablecidas
-
-    console.log(actividades);
     const nuevoEstudiante = {
       _id: idAlumno,
       nombres:nombresEstudiante,
@@ -266,12 +267,12 @@ router.post('/curso/:id/matricular', async (req, res) => {
 });
 
 //elimina a un estudiante
-router.delete('/curso/:id/matricular', async (req, res) => {
+router.delete('/curso/:id/eliminarEstudiante', async (req, res) => {
 
   // **los nombres y apellidos son del alumno y id del curso a matricular
   const idCurso = req.params.id;
   const idAlumno = req.body.idEstudiante;
-
+  console.log("eliminando");
   try {
     // Verificar si el curso ya se ha credo creado este curso 
     const cursoExistente = await CURSO.findOne({ _id: idCurso });

@@ -47,6 +47,52 @@
                 }
             }
 
+            .info-buscador {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                place-items: center;
+
+                #formularioMatricularEstudiante,
+                #formularioCursosHandler {
+                    margin-top: 20px;
+                    display: grid;
+                    grid-template-columns: 150px 300px;
+                    place-content: center;
+                    gap: 10px;
+
+                    .btn-container {
+                        display: flex;
+                        justify-content: center;
+                        margin: 20px;
+                    }
+
+                    .btn-custom {
+                        margin: 0 16px !important;
+                        padding: 8px !important;
+                    }
+
+                    .btn-limited {
+                        width: auto;
+                        /* Ajusta el ancho automáticamente al contenido */
+                        margin: 20px auto;
+                        /* Centra el botón horizontalmente */
+                    }
+
+                    .table {
+                        width: 75%;
+                        max-width: 90%;
+                        margin: 0 auto;
+
+                    }
+                }
+
+                .btns-Estudiantes,
+                .btns-Cursos {
+                    margin-top: 20px;
+                }
+
+            }
+
             #InfoCursoActividadContainer {
                 display: none;
                 justify-content: space-around;
@@ -59,6 +105,7 @@
                         flex-direction: column;
                     }
                 }
+
 
                 .agregarActividad {
                     margin: 40px;
@@ -77,33 +124,14 @@
                 justify-content: center;
                 margin: 80px;
 
-                .btn-container {
-                    display: flex;
-                    justify-content: center;
-                    margin: 20px;
-                }
+                .agregarEStudianteForm {
 
-                .btn-custom {
-                    margin: 0 16px !important;
-                    padding: 8px !important;
-                }
+                    width: 60%;
 
-                .btn-limited {
-                    width: auto;
-                    /* Ajusta el ancho automáticamente al contenido */
-                    margin: 20px auto;
-                    /* Centra el botón horizontalmente */
-                }
-
-                .table {
-                    width: 75%;
-                    max-width: 90%;
-                    margin: 0 auto;
 
                 }
+
             }
-
-
         }
     </style>
 </head>
@@ -111,17 +139,19 @@
 <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary navbar-custom">
         <div class="container-fluid">
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavDropdown"
-                aria-controls="navbarNavDropdown" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
             <div class="collapse navbar-collapse" id="navbarNavDropdown">
                 <ul class="navbar-nav">
                     <li class="nav-item">
                         <a class="nav-link" aria-current="page" href="/">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Cursos</a>
+                        <a id="CursosVer" class="nav-link" href="#">Cursos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Estudiantes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Log out</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
@@ -138,8 +168,6 @@
             </div>
         </div>
     </nav>
-
-
     <main>
         <div class="cursos-container" id="cursosContainer">
             <h1>Tus Cursos</h1>
@@ -155,6 +183,7 @@
                 <h3>
                     <p>Agregar Una nueva Actividad a tu Curso</p>
                 </h3>
+
                 <form action="POST">
                     <label for="Actividad">Actividad:</label>
                     <input type="text" id="Actividad" placeholder="Nombre de la nueva actividad">
@@ -163,15 +192,83 @@
 
             </div>
         </div>
+        <div class="info-buscador">
+            <div class="agregarEStudianteForm">
+                <h1>Gestion de Estudiantes</h1>
+                <form id="formularioMatricularEstudiante" class="row">
+
+
+                    <label for="correoEstudiante">correo:</label>
+                    <input type="text" id="correoEstudiante">
+                    <label for="NombresEstudiante">Nombres:</label>
+                    <input type="text" id="NombresEstudiante">
+
+                    <label for="ApellidosEstudiante">Apellidos:</label>
+                    <input type="text" id="ApellidosEstudiante">
+
+                    <label for="contrasenaEstudiante">contraseña:</label>
+                    <input type="password" id="contrasenaEstudiante" placeholder="generar contraseña automaticamente">
+
+                    <label for="cursoSelecionadoAlumno">Curso:</label>
+                    <input type="text" id="cursoSelecionadoAlumno" disabled placeholder="Seleciona un curso">
+                </form>
+
+            </div>
+            <div class="agregarCursoForm">
+                <h1>Gestion de Cursos</h1>
+                <form id="formularioCursosHandler" class="row">
+                    <label for="codigoCurso">Codigo :</label>
+                    <input type="text" id="codigoCurso" disabled>
+                    <label for="nombreCurso">Nombre del curso:</label>
+                    <input type="text" id="nombreCurso">
+
+                    <label for="NombresProfesor">Profesor:</label>
+                    <input type="text" id="NombresProfesor" disabled>
+
+                    <label for="cantidadAlumno">Alumnos Inscritos:</label>
+                    <input type="text" id="cantidadAlumno" disabled>
+
+                    <label for="ComboxActividades">Tus Actividades:</label>
+                    <select class="form-control" id="ComboxActividades">
+                        <option value="">Selecciona una opción</option>
+                    </select>
+                    <label for="actividadAgregar">Agregar Actividad</label>
+                    <input type="text" id="actividadAgregar" placeholder="actividad a agregar">
+                </form>
+            </div>
+            <div class="btns-Estudiantes">
+                <button type="button" id="btnAgregarAlumno" class="btn btn-secondary btn-limited btn-custom">CREAR
+                    ALUMNO</button>
+                <button type="button" id="btnBuscarAlumno"
+                    class="btn btn-secondary btn-limited btn-custom">BUSCAR</button>
+                <button type="button" id="btnMatricularAlumno"
+                    class="btn btn-secondary btn-limited btn-custom">MATRICULAR</button>
+                <button type="button" id="btnEliminarAlumno"
+                    class="btn btn-secondary btn-limited btn-custom">ELIMINAR</button>
+                <button type="button" id="btnCancelarAlumno"
+                    class="btn btn-secondary btn-limited btn-custom">CANCELAR</button>
+                <button type="button" id="btnLimpiarEstudiante"
+                    class="btn btn-secondary btn-limited btn-custom">LIMPIAR</button>
+            </div>
+            <div class="btns-Cursos">
+                <button type="button" id="btnAgregarCurso" class="btn btn-secondary btn-limited btn-custom">CREAR
+                    CURSO</button>
+                <button type="button" id="btnBuscarCurso"
+                    class="btn btn-secondary btn-limited btn-custom">BUSCAR</button>
+                <button type="button" id="btnEliminarCurso" class="btn btn-secondary btn-limited btn-custom">ELIMINAR
+                    ACT</button>
+                <button type="button" id="btnAgrearActividadCurso"
+                    class="btn btn-secondary btn-limited btn-custom">AGREGAR ACT</button>
+                <button type="button" id="btnLimpiarCurso"
+                    class="btn btn-secondary btn-limited btn-custom">LIMPIAR</button>
+            </div>
+        </div>
         <div id="estudiantes-info" class="container-mt5">
             <div class="btn-container">
-                <button type="button" id="btnAgregar" class="btn btn-secondary btn-limited btn-custom">Agregar
-                    Alumno</button>
-                <button type="button" id="btnCancelar"
-                    class="btn btn-secondary btn-limited btn-custom">Cancelar</button>
                 <button type="button" id="btnImprimir"
                     class="btn btn-secondary btn-limited btn-custom">Imprimir</button>
             </div>
+
             <table class="table table-resposive table-bordered table-hover table-striped" id="tablaEStudiantes">
                 <thead id="encabezado">
                     <tr id="encabezadosTablaEStudiantes" class="table-active">
@@ -180,12 +277,12 @@
                     </tr>
                 </thead>
                 <tbody id="infoTablaEstudiantes">
-
                 </tbody>
             </table>
         </div>
     </main>
     <script>
+        //contenedores
         const cursosContainer = document.getElementById('cursosContainer');
         const infoCurso = document.getElementById('info-curso');
         const InfoCursoActividadContainer = document.getElementById('InfoCursoActividadContainer');
@@ -194,8 +291,51 @@
         const encabezado = document.getElementById('encabezado');
         const encabezadosTablaEStudiantes = document.getElementById('encabezadosTablaEStudiantes');
         const infoTablaEstudiantes = document.getElementById('infoTablaEstudiantes');
-        const btnCancelar = document.getElementById('btnCancelar');
 
+        const btnCancelar = document.getElementById('btnCancelar');
+        const btnAgregarAlumnoMenu = document.getElementById('btnAgregarAlumno');
+
+
+        //Componentes  de Estudiante
+        const formularioMatricularEstudiante = document.getElementById('formularioMatricularEstudiante');
+        const correoEstudiante = document.getElementById('correoEstudiante');
+        const NombresEstudiante = document.getElementById('NombresEstudiante');
+        const ApellidosEstudiante = document.getElementById('ApellidosEstudiante');
+        const contrasenaEstudiante = document.getElementById('contrasenaEstudiante');
+        const cursoSelecionadoAlumno = document.getElementById('cursoSelecionadoAlumno');
+        let idEstudianteCambios = null
+
+        //btns de estudiante
+        const codigoCurso = document.getElementById('codigoCurso');
+        const btnAgregarAlumno = document.getElementById('btnAgregarAlumno');
+        const btnBuscarAlumno = document.getElementById('btnBuscarAlumno');
+        const btnEliminarAlumno = document.getElementById('btnEliminarAlumno');
+        const btnCancelarAlumno = document.getElementById('btnCancelarAlumno');
+        const btnLimpiarEstudiante = document.getElementById('btnLimpiarEstudiante');
+        const btnMatricularAlumno = document.getElementById('btnMatricularAlumno');
+
+        //Componentes  de Curso
+        const formularioCursosHandler = document.getElementById('formularioCursosHandler');
+        const nombreCurso = document.getElementById('nombreCurso');
+        const NombresProfesor = document.getElementById('NombresProfesor');
+        const ComboxActividades = document.getElementById('ComboxActividades');
+        const actividadAgregar = document.getElementById('actividadAgregar');
+        const cantidadAlumno = document.getElementById('cantidadAlumno');
+        let idCursoCambios = null
+
+        //btns de curso
+        const btnAgregarCurso = document.getElementById('btnAgregarCurso');
+        const btnBuscarCurso = document.getElementById('btnBuscarCurso');
+        const btnEliminarCurso = document.getElementById('btnEliminarCurso');
+        const btnAgrearActividadCurso = document.getElementById('btnAgrearActividadCurso');
+        const btnLimpiarCurso = document.getElementById('btnLimpiarCurso');
+
+        //navegacio
+        const CursosVer = document.getElementById('CursosVer')
+
+        //infoProfe
+        let idProfe;
+        let nombreProfe;
 
         const accessToken = localStorage.getItem("accessToken");
         const refreshToken = localStorage.getItem("refreshToken");
@@ -204,27 +344,347 @@
         let cursoSelecionado;
         let actividadEnvio;
 
-
-
-        btnCancelar.addEventListener('click', () => {
-            hacerVisible(cursosContainer, "flex");
-            hacerInvisible(InfoCursoActividadContainer)
-            hacerInvisible(estudiantesInfo)
-        })
-
         document.addEventListener('DOMContentLoaded', async () => {
             //TRAER DATOS DEL PROFESOR
 
-
-
+            const infoProfe = await buscarInfoProfe()
+            idProfe = infoProfe._id
+            nombreProfe = `${infoProfe.nombres} ${infoProfe.apellidos}`
             // TRAER DATOS DE TODOS LOS CURSOS DEL PROFESOR
-            const data = await peticion('http://localhost:3000/api/public/mis-cursos', {
-                'Content-Type': 'application/json',
-                'AccessToken': accessToken,
-                'RefreshToken': refreshToken
-            }, {}, 'GET');
 
-            data.forEach(curso => {
+            const dataCursos = await buscarCursos();
+            if (dataCursos && dataCursos != null) {
+                await manipularCursos(dataCursos)
+            } else {
+                alert("no hay cursos")
+            }
+
+
+        });
+
+        btnAgregarActividad.addEventListener('click', async (e) => {
+            e.preventDefault(); // Evita el envío del formulario
+            // Realiza la petición para agregar la actividad
+            const response = await fetch(`http://localhost:3000/api/public/curso/${idCursoCambios}/actividad`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'AccessToken': accessToken,
+                    'RefreshToken': refreshToken
+                },
+                body: JSON.stringify({ actividad: actividadAgregar.value })
+            });
+
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                // Mostrar un mensaje de error si la solicitud no fue exitosa
+                alert("No se pudo agregar la actividad.");
+            }
+        });
+
+        btnAgregarAlumnoMenu.addEventListener('click', async (e) => {
+            e.preventDefault();
+            hacerVisible(formularioMatricularEstudiante, 'grid')
+        });
+
+        //registra un alumno a la base de datos
+        btnAgregarAlumno.addEventListener('click', async (e) => {
+            e.preventDefault();
+
+            const response = await fetch(`http://localhost:3000/api/public/registro`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'AccessToken': accessToken,
+                    'RefreshToken': refreshToken
+                },
+                body: JSON.stringify({
+                    "nombres": NombresEstudiante.value,
+                    "apellidos": ApellidosEstudiante.value,
+                    "correo": correoEstudiante.value,
+                    "contrasena": contrasenaEstudiante.value,
+                    "role": "estudiante"
+
+                })
+            });
+
+            if (response.ok) {
+                // Recargar la página si la actividad se agregó correctamente
+                window.location.reload();
+            } else {
+                // Mostrar un mensaje de error si la solicitud no fue exitosa
+                alert("No se pudo agregar al estudiante.");
+            }
+
+
+
+        })
+
+        //consulta un alumno a la base de datos
+        btnBuscarAlumno.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/usuarios/${correoEstudiante.value}`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json()
+                    NombresEstudiante.value = data.nombres
+                    ApellidosEstudiante.value = data.apellidos
+                    contrasenaEstudiante.value = data.contrasena
+
+                    idEstudianteCambios = data._id
+                    console.log(idEstudianteCambios);
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se encontro al estudiante.");
+                }
+            } catch (error) {
+
+            }
+
+
+
+        })
+
+        //Limpiar compoenentes de alumno
+        btnLimpiarEstudiante.addEventListener('click', (e) => {
+            e.preventDefault()
+            correoEstudiante.value = ''
+            NombresEstudiante.value = ''
+            ApellidosEstudiante.value = ''
+            contrasenaEstudiante.value = ''
+            cursoSelecionadoAlumno.value = ''
+        })
+        //matricular alumno
+
+        btnMatricularAlumno.addEventListener('click', async (e) => {
+            console.log("matriculando");
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/curso/${idCursoCambios}/matricular`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    },
+                    body: JSON.stringify({ idEstudiante: idEstudianteCambios })
+                });
+                console.log(response.status);
+                if (response.ok) {
+                    const data = await response.json()
+                    correoEstudiante.value = ''
+                    NombresEstudiante.value = ''
+                    ApellidosEstudiante.value = ''
+                    contrasenaEstudiante.value = ''
+
+                    idEstudianteCambios = ''
+                    window.location.reload()
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se encontro al estudiante.");
+                }
+            } catch (error) {
+
+            }
+
+        })
+        //ELIMINAR alumno
+
+        btnEliminarAlumno.addEventListener('click', async (e) => {
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/curso/${idCursoCambios}/eliminarEstudiante`, {
+                    method: "DELETE",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    },
+                    body: JSON.stringify({ idEstudiante: idEstudianteCambios })
+                });
+                if (response.ok) {
+                    const data = await response.json()
+                    correoEstudiante.value = ''
+                    NombresEstudiante.value = ''
+                    ApellidosEstudiante.value = ''
+                    contrasenaEstudiante.value = ''
+
+                    idEstudianteCambios = ''
+                    alert("has eliminado al estudiante de tu curso")
+                    window.location.reload()
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se encontro al estudiante.");
+                }
+            } catch (error) {
+
+            }
+
+        })
+        ComboxActividades.addEventListener('change', (e) => {
+
+        })
+
+        btnAgregarCurso.addEventListener('click', async (e) => {
+            console.log("agregando curso");
+            console.log(nombreCurso);
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/curso/crear`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    },
+                    body: JSON.stringify({ nombre: nombreCurso.value })
+                });
+                console.log(response.status);
+                if (response.ok) {
+                    const data = await response.json()
+                    nombreCurso.value = ''
+                    codigoCurso.value = ''
+                    ComboxActividades.value = ''
+                    actividadAgregar.value = ''
+
+                    window.location.reload()
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se encontro al estudiante.");
+                }
+            } catch (error) {
+
+            }
+
+        })
+        btnEliminarCurso.addEventListener('click', async (e) => {
+            console.log("eliminando curso");
+            const index = ComboxActividades.selectedIndex
+            const actividad = (ComboxActividades[index].text);
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/curso/${idCursoCambios}/actividad`, {
+                    method: "DELETE",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    },
+                    body: JSON.stringify({ actividad: actividad })
+                });
+                console.log(response.status);
+                if (response.ok) {
+                    const data = await response.json()
+                    nombreCurso.value = ''
+                    codigoCurso.value = ''
+                    ComboxActividades.value = ''
+                    actividadAgregar.value = ''
+
+                    window.location.reload()
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se encontro al estudiante.");
+                }
+            } catch (error) {
+
+            }
+
+        })
+
+        btnAgrearActividadCurso.addEventListener('click', async (e) => {
+            e.preventDefault(); // Evita el envío del formulario
+            console.log("agregando actividad");
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/curso/${idCursoCambios}/actividad`, {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    },
+                    body: JSON.stringify({ actividad: actividadAgregar.value })
+                });
+
+                if (response.ok) {
+                    // Recargar la página si la actividad se agregó correctamente
+                    window.location.reload();
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se pudo agregar la actividad.");
+                }
+            } catch (error) {
+
+            }
+
+        })
+        btnLimpiarCurso.addEventListener('click', (e) => {
+            console.log("limpiando cursoso");
+            nombreCurso.value=''
+            actividadAgregar.value=''
+            cantidadAlumno.value=''
+            codigoCurso.value=''
+            idCursoCambios = null
+        })
+
+        const hacerVisible = (element, display) => {
+            element.style.display = display
+        }
+        const hacerInvisible = (element) => {
+            element.style.display = 'none'
+        }
+
+        const buscarInfoProfe = async () => {
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/usuariobyToken`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    }
+                });
+
+                if (response.ok) {
+                    const profe = await response.json()
+                    return profe;
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se encontro al estudiante.");
+                }
+            } catch (error) {
+
+            }
+        }
+        const buscarCursos = async () => {
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/mis-cursos`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    }
+                });
+
+                if (response.ok) {
+                    const cursosData = await response.json()
+                    return cursosData;
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se encontro al estudiante.");
+                }
+            } catch (error) {
+
+            }
+        }
+        const manipularCursos = (cursosData) => {
+            cursosData.forEach(curso => {
                 const cursoElement = document.createElement('div');
                 cursoElement.classList.add('curso');
                 cursoElement.innerHTML = `
@@ -238,131 +698,105 @@
                 cursosContainer.appendChild(cursoElement);
 
                 // INFO DEL CURSO CLICKEADO
-                cursoElement.addEventListener('click', async () => {
+                selecionarCurso(cursoElement, curso)
+            });
+        }
+        const selecionarCurso = (cursoElement, curso) => {
+            cursoElement.addEventListener('click', async () => {
 
-                    hacerInvisible(cursosContainer)
-                    hacerVisible(InfoCursoActividadContainer, "flex")
-                    cursoSelecionado = curso.id;
+                hacerInvisible(cursosContainer)
 
-                    const dataCurso = await peticion(`http://localhost:3000/api/public/curso/${curso.id}`, {
-                        'Content-Type': 'application/json',
-                        'AccessToken': accessToken,
-                        'RefreshToken': refreshToken
-                    }, {}, 'GET');
-
-
-
-                    let actividadesHTML = '';
+                //setemos infor en cursos
+                codigoCurso.value = curso.id
+                nombreCurso.value = curso.nombre
+                NombresProfesor.value = curso.profesor
+                cantidadAlumno.value = curso.alumnos
 
 
-                    infoCurso.innerHTML = `
-                        <h2>Información del Curso</h2>
-                        <p class="curso-nombre">Curso: ${dataCurso.nombre}</p>
-                        <p class="curso-profesor">Profesor: ${dataCurso.profesor}</p>
-                        <p class="curso-profesor">Actividades: ${dataCurso.actividades.actividadesEStablecidas.join(",")}</p>
-                        <p class="curso-estudiantes-num">Alumnos inscriptos: ${dataCurso.estudiantes.length}</p>
-                    `;
-
-                    estudiantesInfo.style.display = 'flex';
-
-                    // Crear tabla dinámicamente
-                    encabezadosTablaEStudiantes.innerHTML = "";
-
-                    // Crear encabezados
-                    let listaDeEncabezados = ['#', 'Nombres', 'Apellidos'];
-                    const actividadesEvaluadas = dataCurso.actividades.actividadesEStablecidas;
-                    listaDeEncabezados = listaDeEncabezados.concat(actividadesEvaluadas);
-                    listaDeEncabezados.push("modificar")
-
-                    listaDeEncabezados.forEach(encabezado => {
-                        const th = document.createElement('th');
-                        th.innerHTML = `<th scope="col" class="col-2">${encabezado}</th>`;
-                        encabezadosTablaEStudiantes.appendChild(th);
-                    });
-                    encabezado.appendChild(encabezadosTablaEStudiantes);
-                    tablaEStudiantes.appendChild(encabezado);
-
-                    infoTablaEstudiantes.innerHTML = ""
-                    const estudiantes = dataCurso.estudiantes;
-
-                    estudiantes.forEach((e, index) => {
-                        const actividadesEstudiante = e.actividadesAsignadas
-                        let notas = ''
-                        actividadesEstudiante.forEach(act => {
-                            notas += `<td class="col-2"><input type="text" class="form-control" value="${act.nota}"</td>`
-                        });
-
-                        infoTablaEstudiantes.innerHTML = `
-                        <tr>
-                            <td class="col-2">#${index + 1}</td>
-                            <td class="col-2">${e.nombres}</td>
-                            <td class="col-2">${e.apellidos}</td>
-                            ${notas}
-                            <td class="col-2"><button type="button" class="btn btn-custom btn-limited" id="btn-modificarNota${index + 1}">Modificar</button></td>
-                        </tr>
-                        `
-
-                        const btn = document.getElementById(`btn-modificarNota${index + 1}`)
-                        btn.addEventListener
-                        btn.addEventListener('click', () => {
-                            console.log("cambio");
-                        })
-
+                //seteamos las option a la combo box
+                if (curso.actividades.length > 0) {
+                    let opciones = `<option value="">Selecciona una opción</option>
+                    `
+                    curso.actividades.forEach(a => {
+                        opciones += `<option value="">${a}</option>
+                    `
                     })
 
+                    ComboxActividades.innerHTML = opciones
+                }
 
-                });
-            });
-        });
-
-
-       /* btnAgregarActividad.addEventListener("click", async (e) => {
-            console.log(accessToken);
-            console.log(cursoSelecionado);
-            const agregarActividadPeticion = await peticion(`http://localhost:3000/api/public/curso/${cursoSelecionado}/actividad`, {
-                'Content-Type': 'application/json',
-                'AccessToken': accessToken,
-                'RefreshToken': refreshToken
-            }, {
-                JSON.stringify({ actividad: actividadValue })
-            }, 'POST');
-
-            actividadEnvio = actividadEnvio
-
-        });*/
+                idCursoCambios = curso.id;
 
 
-        btnAgregarActividad.addEventListener('click', async (e) => {
-            e.preventDefault(); // Evita el envío del formulario
-
-            // Obtén el valor del input de actividad
-            const actividadValue = document.getElementById('Actividad').value;
-
-            // Realiza la petición para agregar la actividad
-            const response = await fetch(`http://localhost:3000/api/public/curso/${cursoSelecionado}/actividad`, {
-                method:"POST",
-                headers:{
+                const dataCurso = await peticion(`http://localhost:3000/api/public/curso/${curso.id}`, {
                     'Content-Type': 'application/json',
-                'AccessToken': accessToken,
-                'RefreshToken': refreshToken
-                },
-                body:JSON.stringify({actividad:actividadValue})
-        });
-        
-        if (response.ok) {
-            // Recargar la página si la actividad se agregó correctamente
-            window.location.reload();
-        } else {
-            // Mostrar un mensaje de error si la solicitud no fue exitosa
-            alert("No se pudo agregar la actividad.");
-        }
-    });
+                    'AccessToken': accessToken,
+                    'RefreshToken': refreshToken
+                }, {}, 'GET');
 
-        const hacerVisible = (element, display) => {
-            element.style.display = display
-        }
-        const hacerInvisible = (element) => {
-            element.style.display = 'none'
+                cursoSelecionadoAlumno.value = dataCurso.nombre
+
+
+                let actividadesHTML = '';
+
+
+                infoCurso.innerHTML = `
+    <h2>Información del Curso</h2>
+    <p class="curso-nombre">Curso: ${dataCurso.nombre}</p>
+    <p class="curso-profesor">Profesor: ${dataCurso.profesor}</p>
+    <p class="curso-profesor">Actividades: ${dataCurso.actividades.actividadesEStablecidas.join(",")}</p>
+    <p class="curso-estudiantes-num">Alumnos inscriptos: ${dataCurso.estudiantes.length}</p>
+`;
+
+                estudiantesInfo.style.display = 'flex';
+
+                // Crear tabla dinámicamente
+                encabezadosTablaEStudiantes.innerHTML = "";
+
+                // Crear encabezados
+                let listaDeEncabezados = ['#', 'Nombres', 'Apellidos'];
+                const actividadesEvaluadas = dataCurso.actividades.actividadesEStablecidas;
+                listaDeEncabezados = listaDeEncabezados.concat(actividadesEvaluadas);
+                listaDeEncabezados.push("modificar")
+
+                listaDeEncabezados.forEach(encabezado => {
+                    const th = document.createElement('th');
+                    th.innerHTML = `<th scope="col" class="col-2">${encabezado}</th>`;
+                    encabezadosTablaEStudiantes.appendChild(th);
+                });
+                encabezado.appendChild(encabezadosTablaEStudiantes);
+                tablaEStudiantes.appendChild(encabezado);
+
+                infoTablaEstudiantes.innerHTML = ""
+                const estudiantes = dataCurso.estudiantes;
+
+                estudiantes.forEach((e, index) => {
+                    const actividadesEstudiante = e.actividadesAsignadas
+                    let notas = ''
+                    actividadesEstudiante.forEach(act => {
+                        notas += `<td class="col-2"><input type="text" class="form-control" value="${act.nota}"</td>`
+                    });
+
+                    infoTablaEstudiantes.innerHTML = `
+    <tr>
+        <td class="col-2">#${index + 1}</td>
+        <td class="col-2">${e.nombres}</td>
+        <td class="col-2">${e.apellidos}</td>
+        ${notas}
+        <td class="col-2"><button type="button" class="btn btn-custom btn-limited" id="btn-modificarNota${index + 1}">Modificar</button></td>
+    </tr>
+    `
+
+                    const btn = document.getElementById(`btn-modificarNota${index + 1}`)
+                    btn.addEventListener
+                    btn.addEventListener('click', () => {
+                        console.log("cambio");
+                    })
+
+                })
+
+
+            });
         }
 
         const peticion = async (url, headers, body, type) => {
@@ -391,8 +825,12 @@
                 alert('Error al realizar la petición');
             }
         };
+        const valorSElectedACtividades = () => { }
+        CursosVer.addEventListener('click', (e) => {
+            e.preventDefault()
+            hacerVisible(cursosContainer, 'flex')
 
-
+        })
 
     </script>
 

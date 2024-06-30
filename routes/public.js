@@ -160,6 +160,11 @@ router.put('/actualizar', async (req, res) => {
   const { nombres, apellidos, correo, contrasena, role } = req.body;
   const accessToken = req.headers['accesstoken'];
 
+
+  // Validar que el id sea un ObjectId válido
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return res.status(400).json({ error: 'ID inválido' });
+  }
   try {
     // Verificar el token de acceso
     const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
@@ -369,6 +374,40 @@ router.post('/changePassword', async (req, res) => {
     res.status(401).json({ message: 'Error al reestablecer la contraseña' })
   }
 })
+
+//methodo para buscar un alumno dado su correo este debe verificarse jwt de un role profesor
+
+router.get('/usuarios/:correo', async (req, res) => {
+  const correo=req.params.correo
+
+  try {
+    const Estudiante = await USUARIO.findOne({correo});
+    return res.status(200).json(Estudiante);
+  } catch (error) {
+    console.error('Error al obtener el estudiante:', error);
+    return res.status(500).send('Error en el servidor');
+  }
+
+});
+//obtener usuario por token
+router.get('/usuariobyToken', async (req, res) => {
+
+  const accessToken=req.headers['accesstoken']
+  try {
+    const decoded=verificarToken(accessToken,process.env.JWT_SECRET)
+    let _id;
+    if (decoded) {
+      _id=decoded.id
+    }
+    const usuario = await USUARIO.findOne({_id});
+    console.log(usuario);
+    return res.status(200).json(usuario);
+  } catch (error) {
+    console.error('Error al obtener el usuario:', error);
+    return res.status(500).send('Error en el servidor');
+  }
+
+});
 
 module.exports = router;
 
