@@ -5,8 +5,9 @@ const { generarAccessToken, generarRefreshToken, verificarToken } = require('../
 const USUARIO = require('../models/Usuario');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer')
+const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
-// Ruta para iniciar sesión y obtener tokens
 router.post('/login', async (req, res) => {
   const { correo, contrasena } = req.body;
 
@@ -19,7 +20,7 @@ router.post('/login', async (req, res) => {
     }
 
     // Comparar la contraseña proporcionada con la almacenada
-    const contrasenaValida = compararContrasena(contrasena, usuario.contrasena);
+    const contrasenaValida = await compararContrasena(contrasena, usuario.contrasena);
 
     if (!contrasenaValida) {
       return res.status(401).send('Correo o contraseña incorrectos');
@@ -29,7 +30,7 @@ router.post('/login', async (req, res) => {
     const accessToken = generarAccessToken({ id: usuario._id, role: usuario.role });
     const refreshToken = generarRefreshToken({ id: usuario._id });
 
-    // deberiamos almacenar el refreshToken en localstorage o en una cookie segura en el cliente
+    // Deberíamos almacenar el refreshToken en localstorage o en una cookie segura en el cliente
 
     return res.status(200).json({ accessToken, refreshToken });
   } catch (error) {
@@ -37,6 +38,7 @@ router.post('/login', async (req, res) => {
     return res.status(500).send('Error en el servidor');
   }
 });
+
 
 router.post('/registro', async (req, res) => {
   const { nombres, apellidos, correo, contrasena, role } = req.body;
@@ -100,18 +102,18 @@ router.post('/refresh-token', async (req, res) => {
 // Buscar usuarios por id
 router.get('/usuario/:id', async (req, res) => {
   const { id } = req.params;
-  const{token}=req.body
+  const { token } = req.body
 
-  const decoded=verificarToken(token,process.env.JWT_SECRET)
+  const decoded = verificarToken(token, process.env.JWT_SECRET)
 
-  if (decoded!=null) {
+  if (decoded != null) {
     console.log(decoded);
   }
 
 
   // Validar que el id sea un ObjectId válido
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).send('ID inválido');
+    return res.status(400).send('autorizacion denegada');
   }
 
   try {
@@ -144,8 +146,8 @@ router.get('/usuarios', async (req, res) => {
   try {
     // Obtener todos los usuarios y seleccionar solo el campo 'correo'
 
-    const correos = await USUARIO.find({}, 'correo');
-    return res.status(200).json(correos);
+    const usuarios = await USUARIO.find({}, 'nombres correo role');
+    return res.status(200).json(usuarios);
   } catch (error) {
     console.error('Error al obtener los usuarios:', error);
     return res.status(500).send('Error en el servidor');
@@ -153,44 +155,156 @@ router.get('/usuarios', async (req, res) => {
 
 });
 
-// Actualizar un usuario por ID
-router.put('/:id', async (req, res) => {
-  const { id } = req.params;
-  const { role, nombres, apellidos, correo, contrasena } = req.body;
+// Ruta para que los usuarios actualicen sus datos según sus permisos
+router.put('/actualizar', async (req, res) => {
+  const { nombres, apellidos, correo, contrasena, role } = req.body;
+  const accessToken = req.headers['accesstoken'];
 
-  // Validar que el id sea un ObjectId válido
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(400).json({ error: 'ID inválido' });
-  }
   try {
-    const usuario = await USUARIO.findById(id);
+    // Verificar el token de acceso
+    const decoded = jwt.verify(accessToken, process.env.JWT_SECRET);
+    if (!decoded) {
+      return res.status(401).json({ error: 'No estás autorizado' });
+    }
 
+    // Obtener el usuario que hace la solicitud
+    const usuario = await USUARIO.findById(decoded.id);
     if (!usuario) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    // Actualizar los campos del usuario
-    if (role) usuario.role = role;
-    if (nombres) usuario.nombres = nombres;
-    if (apellidos) usuario.apellidos = apellidos;
-    if (correo) usuario.correo = correo;
-    if (contrasena) {
-      const contrasenaHasheada = await hashContrasena(contrasena);
-      usuario.contrasena = contrasenaHasheada;
+    // Actualizar los campos del usuario según su rol
+    switch (usuario.role) {
+      case 'director':
+        if (nombres) usuario.nombres = nombres;
+        if (apellidos) usuario.apellidos = apellidos;
+        if (correo) usuario.correo = correo;
+        if (contrasena) {
+          // Generar un token de confirmación
+          const token = jwt.sign({ id: usuario._id, correo: usuario.correo, nuevaContrasena: contrasena }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+          // Configurar el transporte de nodemailer
+          const transporter = nodemailer.createTransport({
+            service: 'outlook', // Puedes usar cualquier servicio de correo que prefieras
+            auth: {
+              user: process.env.EMAIL, // Tu correo electrónico
+              pass: process.env.EMAIL_PASSWORD // Tu contraseña de correo electrónico
+            }
+          });
+
+          // Enviar el correo electrónico con el enlace de confirmación
+          const mailOptions = {
+            from: process.env.EMAIL,
+            to: usuario.correo,
+            subject: 'Confirmación de cambio de contraseña',
+            text: `Para cambiar tu contraseña, haz clic en el siguiente enlace: ${process.env.CLIENT_URL}/confirmar-cambio-contrasena/${token}`
+          };
+
+          await transporter.sendMail(mailOptions); 
+        }
+        if (role) usuario.role = role;
+        break;
+
+      case 'maestro':
+        if (nombres) usuario.nombres = nombres;
+        if (apellidos) usuario.apellidos = apellidos;
+        if (correo) usuario.correo = correo;
+        if (contrasena) {
+          // Generar un token de confirmación
+          const token = jwt.sign({ id: usuario._id, correo: usuario.correo, nuevaContrasena: contrasena }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+          // Configurar el transporte de nodemailer
+          const transporter = nodemailer.createTransport({
+            service: 'outlook', // Puedes usar cualquier servicio de correo que prefieras
+            auth: {
+              user: process.env.EMAIL, // Tu correo electrónico
+              pass: process.env.EMAIL_PASSWORD // Tu contraseña de correo electrónico
+            }
+          });
+
+          // Enviar el correo electrónico con el enlace de confirmación
+          const mailOptions = {
+            from: process.env.EMAIL,
+            to: usuario.correo,
+            subject: 'Confirmación de cambio de contraseña',
+            text: `Para cambiar tu contraseña, haz clic en el siguiente enlace: ${process.env.CLIENT_URL}/confirmar-cambio-contrasena/${token}`
+          };
+
+          await transporter.sendMail(mailOptions); 
+        }
+        break;
+
+      case 'estudiante':
+        if (correo) usuario.correo = correo;
+        if (contrasena) {
+          // Generar un token de confirmación
+          const token = jwt.sign({ id: usuario._id, correo: usuario.correo, nuevaContrasena: contrasena }, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+          // Configurar el transporte de nodemailer
+          const transporter = nodemailer.createTransport({
+            service: 'outlook', // Puedes usar cualquier servicio de correo que prefieras
+            auth: {
+              user: process.env.EMAIL, // Tu correo electrónico
+              pass: process.env.EMAIL_PASSWORD // Tu contraseña de correo electrónico
+            }
+          });
+
+          // Enviar el correo electrónico con el enlace de confirmación
+          const mailOptions = {
+            from: process.env.EMAIL,
+            to: usuario.correo,
+            subject: 'Confirmación de cambio de contraseña',
+            text: `Para cambiar tu contraseña, haz clic en el siguiente enlace: ${process.env.CLIENT_URL}/confirmar-cambio-contrasena/${token}`
+          };
+
+          await transporter.sendMail(mailOptions); 
+        }
+        break;
+
+      default:
+        return res.status(403).json({ error: 'Rol no permitido' });
     }
 
     // Guardar los cambios en la base de datos
     await usuario.save();
 
-    return res.status(200).json(usuario);
+    return res.status(200).json({usuario, message: 'Correo de confirmación enviado. Verifica tu correo para confirmar el cambio de contraseña.'})
+
   } catch (err) {
     console.error('Error al actualizar el usuario:', err);
-    return res.status(500).json({ error: 'Error al actulizar los datos' });
+    return res.status(500).json({ error: 'Error al actualizar los datos' });
   }
 });
+// Ruta para confirmar el cambio de contraseña
+router.post('/confirmar/:token', async (req, res) => {
+  const { token } = req.params;
 
+  try {
+    // Verificar el token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded) {
+      return res.status(400).json({ error: 'Token inválido o expirado' });
+    }
 
+    // Encontrar al usuario por ID
+    const usuario = await USUARIO.findById(decoded.id);
+    if (!usuario) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
 
+    // Cambiar la contraseña del usuario
+    const contrasenaHasheada = await hashContrasena(decoded.nuevaContrasena);
+    usuario.contrasena = contrasenaHasheada;
+
+    // Guardar los cambios en la base de datos
+    await usuario.save();
+
+    return res.status(200).json({ message: 'Contraseña cambiada exitosamente' });
+  } catch (error) {
+    console.error('Error al cambiar la contraseña:', error);
+    return res.status(500).json({ error: 'Error al cambiar la contraseña' });
+  }
+});
 
 // Recuperar contraseña 
 router.post('/sendEmail', async (req, res) => {
