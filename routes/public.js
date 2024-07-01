@@ -5,6 +5,7 @@ const { generarAccessToken, generarRefreshToken, verificarToken } = require('../
 const USUARIO = require('../models/Usuario');
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer')
+require('dotenv').config();
 
 // Ruta para iniciar sesión y obtener tokens
 router.post('/login', async (req, res) => {
@@ -27,11 +28,12 @@ router.post('/login', async (req, res) => {
 
     // Generar tokens
     const accessToken = generarAccessToken({ id: usuario._id, role: usuario.role });
-    const refreshToken = generarRefreshToken({ id: usuario._id });
+    const refreshToken = generarRefreshToken({ id: usuario._id ,role:usuario.role});
+    const role = usuario.role;
 
     // deberiamos almacenar el refreshToken en localstorage o en una cookie segura en el cliente
 
-    return res.status(200).json({ accessToken, refreshToken });
+    return res.status(200).json({ accessToken, refreshToken ,role});
   } catch (error) {
     console.error('Error en el inicio de sesión:', error);
     return res.status(500).send('Error en el servidor');
@@ -40,7 +42,7 @@ router.post('/login', async (req, res) => {
 
 router.post('/registro', async (req, res) => {
   const { nombres, apellidos, correo, contrasena, role } = req.body;
-
+  console.log(contrasena);
   try {
     // Verificar si el usuario ya existe por correo electrónico
     const usuarioExistente = await USUARIO.findOne({ correo });
@@ -105,7 +107,6 @@ router.get('/usuario/:id', async (req, res) => {
   const decoded=verificarToken(token,process.env.JWT_SECRET)
 
   if (decoded!=null) {
-    console.log(decoded);
   }
 
 
@@ -282,7 +283,6 @@ router.get('/usuariobyToken', async (req, res) => {
       _id=decoded.id
     }
     const usuario = await USUARIO.findOne({_id});
-    console.log(usuario);
     return res.status(200).json(usuario);
   } catch (error) {
     console.error('Error al obtener el usuario:', error);

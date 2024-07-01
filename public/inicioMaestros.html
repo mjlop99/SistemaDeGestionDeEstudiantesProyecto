@@ -348,8 +348,13 @@
             //TRAER DATOS DEL PROFESOR
 
             const infoProfe = await buscarInfoProfe()
-            idProfe = infoProfe._id
-            nombreProfe = `${infoProfe.nombres} ${infoProfe.apellidos}`
+            if (infoProfe) {
+                idProfe = infoProfe._id
+                nombreProfe = `${infoProfe.nombres} ${infoProfe.apellidos}`
+            }
+            else {
+                alert("no tiene permiso")
+            }
             // TRAER DATOS DE TODOS LOS CURSOS DEL PROFESOR
 
             const dataCursos = await buscarCursos();
@@ -439,9 +444,9 @@
                     NombresEstudiante.value = data.nombres
                     ApellidosEstudiante.value = data.apellidos
                     contrasenaEstudiante.value = data.contrasena
+                    contrasenaEstudiante.setAttribute('disabled', true)
 
                     idEstudianteCambios = data._id
-                    console.log(idEstudianteCambios);
                 } else {
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
                     alert("No se encontro al estudiante.");
@@ -530,6 +535,10 @@
         })
         ComboxActividades.addEventListener('change', (e) => {
 
+        })
+
+        btnCancelarAlumno.addEventListener('click', () => {
+            hacerVisible(cursosContainer, "flex")
         })
 
         btnAgregarCurso.addEventListener('click', async (e) => {
@@ -622,14 +631,47 @@
             }
 
         })
+
         btnLimpiarCurso.addEventListener('click', (e) => {
             console.log("limpiando cursoso");
-            nombreCurso.value=''
-            actividadAgregar.value=''
-            cantidadAlumno.value=''
-            codigoCurso.value=''
+            nombreCurso.value = ''
+            actividadAgregar.value = ''
+            cantidadAlumno.value = ''
+            codigoCurso.value = ''
             idCursoCambios = null
         })
+
+        btnBuscarCurso.addEventListener('click', async (e) => {
+            e.preventDefault(); // Evita el envío del formulario
+            console.log("buscando");
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/curso/nombre/${nombreCurso.value}`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json()
+                    setearInfoCurso(data._id, data.nombre, nombreProfe, data.estudiantes.length, data.actividades.actividadesEStablecidas)
+                    cursoSelecionadoAlumno.value = data.nombre
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se pudo encontro la actividad.");
+                }
+            } catch (error) {
+
+            }
+
+        })
+        const CambioDeNota = async (idEstudiante, actividad, nota) => {
+            console.log("cambiando Nota");
+
+
+        }
 
         const hacerVisible = (element, display) => {
             element.style.display = display
@@ -674,15 +716,17 @@
 
                 if (response.ok) {
                     const cursosData = await response.json()
+
                     return cursosData;
                 } else {
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
-                    alert("No se encontro al estudiante.");
+                    alert("No se encontro el curso.");
                 }
             } catch (error) {
 
             }
         }
+
         const manipularCursos = (cursosData) => {
             cursosData.forEach(curso => {
                 const cursoElement = document.createElement('div');
@@ -705,25 +749,7 @@
             cursoElement.addEventListener('click', async () => {
 
                 hacerInvisible(cursosContainer)
-
-                //setemos infor en cursos
-                codigoCurso.value = curso.id
-                nombreCurso.value = curso.nombre
-                NombresProfesor.value = curso.profesor
-                cantidadAlumno.value = curso.alumnos
-
-
-                //seteamos las option a la combo box
-                if (curso.actividades.length > 0) {
-                    let opciones = `<option value="">Selecciona una opción</option>
-                    `
-                    curso.actividades.forEach(a => {
-                        opciones += `<option value="">${a}</option>
-                    `
-                    })
-
-                    ComboxActividades.innerHTML = opciones
-                }
+                setearInfoCurso(curso.id, curso.nombre, curso.profesor, curso.alumnos, curso.actividades)
 
                 idCursoCambios = curso.id;
 
@@ -741,12 +767,12 @@
 
 
                 infoCurso.innerHTML = `
-    <h2>Información del Curso</h2>
-    <p class="curso-nombre">Curso: ${dataCurso.nombre}</p>
-    <p class="curso-profesor">Profesor: ${dataCurso.profesor}</p>
-    <p class="curso-profesor">Actividades: ${dataCurso.actividades.actividadesEStablecidas.join(",")}</p>
-    <p class="curso-estudiantes-num">Alumnos inscriptos: ${dataCurso.estudiantes.length}</p>
-`;
+                    <h2>Información del Curso</h2>
+                    <p class="curso-nombre">Curso: ${dataCurso.nombre}</p>
+                    <p class="curso-profesor">Profesor: ${dataCurso.profesor}</p>
+                    <p class="curso-profesor">Actividades: ${dataCurso.actividades.actividadesEStablecidas.join(",")}</p>
+                    <p class="curso-estudiantes-num">Alumnos inscriptos: ${dataCurso.estudiantes.length}</p>
+                `;
 
                 estudiantesInfo.style.display = 'flex';
 
@@ -770,35 +796,111 @@
                 infoTablaEstudiantes.innerHTML = ""
                 const estudiantes = dataCurso.estudiantes;
 
+                //se guardara todas la informacion del cuerpo de l tabala para luego anexarla
+                let tablasEstudianteTotal = '';
                 estudiantes.forEach((e, index) => {
-                    const actividadesEstudiante = e.actividadesAsignadas
-                    let notas = ''
+                    const actividadesEstudiante = e.actividadesAsignadas;
+                    let notas = '';
                     actividadesEstudiante.forEach(act => {
-                        notas += `<td class="col-2"><input type="text" class="form-control" value="${act.nota}"</td>`
+                        notas += `<td class="col-2"><input type="Number" class="form-control nota" value="${act.nota}"></td>`;
                     });
 
-                    infoTablaEstudiantes.innerHTML = `
-    <tr>
-        <td class="col-2">#${index + 1}</td>
-        <td class="col-2">${e.nombres}</td>
-        <td class="col-2">${e.apellidos}</td>
-        ${notas}
-        <td class="col-2"><button type="button" class="btn btn-custom btn-limited" id="btn-modificarNota${index + 1}">Modificar</button></td>
-    </tr>
-    `
+                    tablasEstudianteTotal += `
+                        <tr class="infoEstudiantesRender">
+                            <td class="col-2">#${index + 1}</td>
+                            <td class="col-2">${e.nombres}</td>
+                            <td class="col-2">${e.apellidos}</td>
+                            ${notas}
+                            <td class="col-2"><button type="button" class="btn btn-custom btn-limited" id="btn-modificarNota${index + 1}">Modificar</button></td>
+                        </tr>
+                    `;
+                });
 
-                    const btn = document.getElementById(`btn-modificarNota${index + 1}`)
-                    btn.addEventListener
+                infoTablaEstudiantes.innerHTML = tablasEstudianteTotal;
+
+                estudiantes.forEach( (e, index) => {
+                    const btn = document.getElementById(`btn-modificarNota${index + 1}`);
                     btn.addEventListener('click', () => {
-                        console.log("cambio");
-                    })
+                        const columnaInfo = infoTablaEstudiantes.querySelectorAll('.infoEstudiantesRender')[index]
+                        const inpustNotaNodo = columnaInfo.querySelectorAll('.nota')
+                        let inputs = [];
+                        inpustNotaNodo.forEach(e => inputs.push(e))
 
-                })
+                        let advertenciaErrorCambioDeNota="";
+                        inputs.forEach(async(notaInput, index) => {
+                            const nota = parseFloat(notaInput.value)
+                            if (nota === '') {
+                                alert("la nota no pude estar vacia")
+                                return
+                            } else if (nota > 10.00 || nota < 0.00) {
+                                alert(`la nota ${actividadesEvaluadas[index]} tienen un rango inaxeptable`)
+                                return
+
+                            }
+                            try {
+
+                                console.log(`http://localhost:3000/api/public/curso/${idCursoCambios}/notas/cambios`);
+                                const response = await fetch(`http://localhost:3000/api/public/curso/${idCursoCambios}/notas/cambios`, {
+                                    method: "PUT",
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'AccessToken': accessToken,
+                                        'RefreshToken': refreshToken
+                                    },
+                                    body: JSON.stringify({
+                                        idEstudiante: e._id,
+                                        actividad: actividadesEvaluadas[index],
+                                        nota: nota,
+                                    })
+                                });
+
+                                if (response.ok) {
+                                    console.log(await response.json());
+                                } else {
+                                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                                    alert("No se pudo encontro la actividad.");
+                                    return false
+                                }
+                            } catch (error) {
+                                console.log(error);
+                            }
+                            
+                            
 
 
+
+                        })
+                        window.location.reload()
+                    });
+                });
             });
         }
 
+
+
+
+        const setearInfoCurso = (id, nombre, profesor, cantidadAlumnos, cursoActividades) => {
+            //setemos infor en cursos
+            codigoCurso.value = id
+            nombreCurso.value = nombre
+            NombresProfesor.value = profesor
+            cantidadAlumno.value = cantidadAlumnos
+
+
+            //seteamos las option a la combo box
+            if (cursoActividades.length > 0) {
+                let opciones = `<option value="">Selecciona una opción</option>
+                    `
+                cursoActividades.forEach(a => {
+                    opciones += `<option value="">${a}</option>
+                    `
+                })
+
+                ComboxActividades.innerHTML = opciones
+            }
+
+            idCursoCambios = id;
+        }
         const peticion = async (url, headers, body, type) => {
             let response;
             try {

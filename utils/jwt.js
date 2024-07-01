@@ -11,11 +11,11 @@ function generarRefreshToken(payload) {
 
 function verificarToken(token, secret) {
   try {
-    console.log(jwt.verify(token, secret));
     return jwt.verify(token, secret);
   } catch (error) {
     return error; // Token inválido
   }
 }
+
 
 module.exports = { generarAccessToken, generarRefreshToken, verificarToken };
