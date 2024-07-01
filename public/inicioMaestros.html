@@ -891,7 +891,7 @@
                             }
                             try {
 
-                                console.log(`http://localhost:3000/api/public/curso/${idCursoCambios}/notas/cambios`);
+                                console.log(`${process.env.CLIENT_URL}/api/public/curso/${idCursoCambios}/notas/cambios`);
                                 const response = await fetch(`http://localhost:3000/api/public/curso/${idCursoCambios}/notas/cambios`, {
                                     method: "PUT",
                                     headers: {

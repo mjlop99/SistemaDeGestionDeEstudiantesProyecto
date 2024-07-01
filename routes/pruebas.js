@@ -57,9 +57,6 @@ router.post('/curso/crear/', async (req, res) => {
 });
 
 
-
-
-
 //Ruta para obtener todos los tipos de Curso
 router.get('/cursos', async (req, res) => {
   const accessToken = req.headers['accesstoken'];
