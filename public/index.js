@@ -33,7 +33,7 @@ loginForm.addEventListener('submit', async (e) => {
                 } else if (role==="estudiante"){
 
                 }
-
+                console.log(data);
                 localStorage.setItem("accessToken", data.accessToken)
                 localStorage.setItem("refreshToken", data.refreshToken)
                 await redirigir(role)
@@ -58,10 +58,9 @@ const redirigir = async (role) => {
             },
         });
         if (response.ok) {
-            console.log(response);
             if (role === 'director') {
                 window.location.href = '/directorInicio.html';
-            } else if (role === 'director') {
+            } else if (role === 'maestro') {
                 window.location.href = '/inicioMaestros.html';
             } else if (role === 'estudiante') {
                 window.location.href = '/estudianteInicio.html';

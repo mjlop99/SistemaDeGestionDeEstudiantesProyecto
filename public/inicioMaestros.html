@@ -332,6 +332,7 @@
 
         //navegacio
         const CursosVer = document.getElementById('CursosVer')
+        const btnImprimir = document.getElementById('btnImprimir')
 
         //infoProfe
         let idProfe;
@@ -778,13 +779,20 @@
 
                 // Crear tabla dinámicamente
                 encabezadosTablaEStudiantes.innerHTML = "";
+                let theadPararReporte = ''
+                let tbodyParaReporte = ''
 
                 // Crear encabezados
                 let listaDeEncabezados = ['#', 'Nombres', 'Apellidos'];
                 const actividadesEvaluadas = dataCurso.actividades.actividadesEStablecidas;
                 listaDeEncabezados = listaDeEncabezados.concat(actividadesEvaluadas);
+                
+                //lista de encabezados para reporte
+                listaDeEncabezados.forEach(encabezado => {
+                    theadPararReporte += `<th scope="col" class="col-2">${encabezado}</th>`;
+                });
+                //lista de encabezados para tabla pagina
                 listaDeEncabezados.push("modificar")
-
                 listaDeEncabezados.forEach(encabezado => {
                     const th = document.createElement('th');
                     th.innerHTML = `<th scope="col" class="col-2">${encabezado}</th>`;
@@ -814,11 +822,55 @@
                             <td class="col-2"><button type="button" class="btn btn-custom btn-limited" id="btn-modificarNota${index + 1}">Modificar</button></td>
                         </tr>
                     `;
+                    tbodyParaReporte+= `
+                        <tr class="infoEstudiantesRender">
+                            <td class="col-2">#${index + 1}</td>
+                            <td class="col-2">${e.nombres}</td>
+                            <td class="col-2">${e.apellidos}</td>
+                            ${notas}
+                        </tr>
+                    `;
                 });
+
+                //info para reporte
+
+
+                btnImprimir.addEventListener('click', async () => {
+
+
+                    try {
+                        console.log(`http://localhost:3000/api/public/curso/${idCursoCambios}/notas/cambios`);
+                                const response = await fetch(`http://localhost:3000/api/public/generarReporte`, {
+                                    method: "POST",
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'AccessToken': accessToken,
+                                        'RefreshToken': refreshToken
+                                    },
+                                    body: JSON.stringify({
+                                        encabezados: theadPararReporte,
+                                        cuerpo: tbodyParaReporte,
+                                        nombreProfe: nombreProfe,
+                                        nombreCurso: curso.nombre,
+                                    })
+                                });
+
+                                if (response.ok) {
+                                    alert("reporte generado")
+                                } else {
+                                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                                    alert("No se pudo realizar el reporte");
+                                }
+                    } catch (error) {
+                        console.log(error);
+                    }
+
+
+                })
 
                 infoTablaEstudiantes.innerHTML = tablasEstudianteTotal;
 
-                estudiantes.forEach( (e, index) => {
+                estudiantes.forEach((e, index) => {
                     const btn = document.getElementById(`btn-modificarNota${index + 1}`);
                     btn.addEventListener('click', () => {
                         const columnaInfo = infoTablaEstudiantes.querySelectorAll('.infoEstudiantesRender')[index]
@@ -826,8 +878,8 @@
                         let inputs = [];
                         inpustNotaNodo.forEach(e => inputs.push(e))
 
-                        let advertenciaErrorCambioDeNota="";
-                        inputs.forEach(async(notaInput, index) => {
+                        let advertenciaErrorCambioDeNota = "";
+                        inputs.forEach(async (notaInput, index) => {
                             const nota = parseFloat(notaInput.value)
                             if (nota === '') {
                                 alert("la nota no pude estar vacia")
@@ -864,8 +916,8 @@
                             } catch (error) {
                                 console.log(error);
                             }
-                            
-                            
+
+
 
 
 
@@ -933,6 +985,11 @@
             hacerVisible(cursosContainer, 'flex')
 
         })
+
+        const generarREporteByApi = (encabezados, cuerpo) => {
+            console.log(encabezados);
+            console.log(cuerpo);
+        }
 
     </script>
 

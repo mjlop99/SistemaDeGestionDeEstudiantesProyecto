@@ -17,6 +17,8 @@ APP.use(bodyParser.json());
 APP.use(express.json());
 APP.use(express.static('public'));
 
+
+
 APP.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
   });

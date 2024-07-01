@@ -5,6 +5,7 @@ const { generarAccessToken, generarRefreshToken, verificarToken } = require('../
 const CURSO = require('../models/Curso');
 const USUARIO = require('../models/Usuario');
 const jwt = require('jsonwebtoken');
+const puppeteer = require('puppeteer');
 require('dotenv').config();
 
 
@@ -350,12 +351,12 @@ router.put('/curso/:id/notas/cambios', async (req, res) => {
 
     // Verificar si la actividad existe para el estudiante
     const actividadIndex = estudiante.actividadesAsignadas.findIndex(act => act.actividadNombre === actividad);
-    
-    
+
+
     if (actividadIndex === -1) {
       return res.status(404).send('Error: esta actividad no existe para el estudiante');
     }
-    
+
     // Cambiar la nota de la actividad
     console.log(estudiante.actividadesAsignadas[actividadIndex]);
     estudiante.actividadesAsignadas[actividadIndex].nota = nota;
@@ -372,7 +373,94 @@ router.put('/curso/:id/notas/cambios', async (req, res) => {
 
 
 
+// Función para obtener la fecha actual formateada como "YYYYMMDDHHmmss"
+function obtenerFechaFormateada() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  const seconds = String(now.getSeconds()).padStart(2, '0');
+  return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+}
 
+// Función para limpiar caracteres especiales en nombres de archivo
+function limpiarNombreArchivo(nombre) {
+  return nombre.replace(/[^\w\s.-]/gi, ''); // Remueve caracteres especiales excepto letras, números, espacios, guiones y puntos
+}
+
+// Ruta para generar el reporte en formato PDF
+router.post('/generarReporte', async (req, res) => {
+  const listaDeEncabezados = req.body.encabezados;
+  const cuerpo = req.body.cuerpo;
+  const nombreProfe = req.body.nombreProfe;
+  const nombre = limpiarNombreArchivo(nombreProfe.replace(/\s+/g, '-'));
+  const nombreCurso = req.body.nombreCurso;
+
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+
+  try {
+    await page.setContent(`
+      <!doctype html>
+      <html lang="en">
+      <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Sistema de gestion Estudiantil</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+              integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+           <style>
+      body {
+        padding: 40px 20px;
+      }
+    </style>
+      </head>
+      <body>
+          <main>
+              <h2>Profesor: ${nombreProfe}</h2>
+              <h2>Curso: ${nombreCurso}</h2>
+              <table class="table table-responsive table-bordered table-hover table-striped p-4" id="tablaEstudiantes">
+                  <thead id="encabezado">
+                      <tr id="encabezadosTablaEstudiantes" class="table-active">
+                          ${listaDeEncabezados}
+                      </tr>
+                  </thead>
+                  <tbody id="infoTablaEstudiantes">
+                    ${cuerpo}
+                  </tbody>
+              </table>
+          </main>
+      </body>
+      </html>
+    `);
+
+    await page.waitForSelector('#tablaEstudiantes');
+    const fecha = obtenerFechaFormateada();
+    const nombrePdf = `reporte_maestro_${nombre}_${nombreCurso}_${fecha}.pdf`;
+    const pathToSave = './pdfs/'; // Directorio donde se guardarán los archivos
+
+    // Verificar si el directorio existe, si no existe, crearlo
+    const fs = require('fs');
+    if (!fs.existsSync(pathToSave)) {
+      fs.mkdirSync(pathToSave, { recursive: true });
+    }
+
+    await page.pdf({ path: pathToSave + nombrePdf, format: 'A4' });
+
+    await browser.close();
+    console.log('PDF generado con éxito:', nombrePdf);
+
+    return res.status(200).send({ mensaje: "PDF generado", nombrePdf });
+
+  } catch (error) {
+    console.error('Error al generar el PDF:', error);
+    return res.status(400).send({ mensaje: "Error al generar el PDF" });
+  }
+});
+
+module.exports = router;
 
 
 module.exports = router;
