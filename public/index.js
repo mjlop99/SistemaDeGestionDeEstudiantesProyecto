@@ -41,6 +41,8 @@ loginForm.addEventListener('submit', async (e) => {
                 // Mostrar un mensaje de error si la solicitud no fue exitosa
                 alert("Credenciales incorrectas");
             }
+
+            
         } catch (error) {
             console.log(error);
         }

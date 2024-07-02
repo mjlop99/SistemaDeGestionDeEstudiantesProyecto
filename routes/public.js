@@ -16,18 +16,23 @@ require('dotenv').config();
 router.post('/login', async (req, res) => {
   const { correo, contrasena } = req.body;
 
+  console.log(correo);
+  console.log(contrasena);
+
   try {
     // Buscar el usuario por correo electrónico
     const usuario = await USUARIO.findOne({ correo });
 
     if (!usuario) {
+      console.log("no usuario");
       return res.status(401).send('Correo o contraseña incorrectos');
     }
-
+    
     // Comparar la contraseña proporcionada con la almacenada
     const contrasenaValida = await compararContrasena(contrasena, usuario.contrasena);
-
+    
     if (!contrasenaValida) {
+      console.log("proble con contra");
       return res.status(401).send('Correo o contraseña incorrectos');
     }
 

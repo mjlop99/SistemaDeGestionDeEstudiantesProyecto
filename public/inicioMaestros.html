@@ -198,6 +198,8 @@
                 <form id="formularioMatricularEstudiante" class="row">
 
 
+                    <label for="idEstudiante">codigo:</label>
+                    <input type="text" id="idEstudiante" disabled>
                     <label for="correoEstudiante">correo:</label>
                     <input type="text" id="correoEstudiante">
                     <label for="NombresEstudiante">Nombres:</label>
@@ -299,6 +301,7 @@
         //Componentes  de Estudiante
         const formularioMatricularEstudiante = document.getElementById('formularioMatricularEstudiante');
         const correoEstudiante = document.getElementById('correoEstudiante');
+        const idEstudiante = document.getElementById('idEstudiante');
         const NombresEstudiante = document.getElementById('NombresEstudiante');
         const ApellidosEstudiante = document.getElementById('ApellidosEstudiante');
         const contrasenaEstudiante = document.getElementById('contrasenaEstudiante');
@@ -333,6 +336,7 @@
         //navegacio
         const CursosVer = document.getElementById('CursosVer')
         const btnImprimir = document.getElementById('btnImprimir')
+        const URLBASE = 'http://localhost:3000'
 
         //infoProfe
         let idProfe;
@@ -409,7 +413,7 @@
                     "nombres": NombresEstudiante.value,
                     "apellidos": ApellidosEstudiante.value,
                     "correo": correoEstudiante.value,
-                    "contrasena": contrasenaEstudiante.value,
+                    "contrasena": "12345",
                     "role": "estudiante"
 
                 })
@@ -429,7 +433,8 @@
 
         //consulta un alumno a la base de datos
         btnBuscarAlumno.addEventListener('click', async (e) => {
-            e.preventDefault();
+            console.log("buscando");
+            console.log(correoEstudiante.value);
             try {
                 const response = await fetch(`http://localhost:3000/api/public/usuarios/${correoEstudiante.value}`, {
                     method: "GET",
@@ -442,9 +447,9 @@
 
                 if (response.ok) {
                     const data = await response.json()
+                    idEstudiante.value = data._id
                     NombresEstudiante.value = data.nombres
                     ApellidosEstudiante.value = data.apellidos
-                    contrasenaEstudiante.value = data.contrasena
                     contrasenaEstudiante.setAttribute('disabled', true)
 
                     idEstudianteCambios = data._id
@@ -513,10 +518,11 @@
                         'AccessToken': accessToken,
                         'RefreshToken': refreshToken
                     },
-                    body: JSON.stringify({ idEstudiante: idEstudianteCambios })
+                    body: JSON.stringify({ idEstudiante: idEstudiante.value })
                 });
                 if (response.ok) {
                     const data = await response.json()
+                    idEstudiante.value = ''
                     correoEstudiante.value = ''
                     NombresEstudiante.value = ''
                     ApellidosEstudiante.value = ''
@@ -526,9 +532,11 @@
                     alert("has eliminado al estudiante de tu curso")
                     window.location.reload()
                 } else {
+
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
                     alert("No se encontro al estudiante.");
                 }
+                console.log(response);
             } catch (error) {
 
             }
@@ -786,7 +794,7 @@
                 let listaDeEncabezados = ['#', 'Nombres', 'Apellidos'];
                 const actividadesEvaluadas = dataCurso.actividades.actividadesEStablecidas;
                 listaDeEncabezados = listaDeEncabezados.concat(actividadesEvaluadas);
-                
+
                 //lista de encabezados para reporte
                 listaDeEncabezados.forEach(encabezado => {
                     theadPararReporte += `<th scope="col" class="col-2">${encabezado}</th>`;
@@ -822,7 +830,7 @@
                             <td class="col-2"><button type="button" class="btn btn-custom btn-limited" id="btn-modificarNota${index + 1}">Modificar</button></td>
                         </tr>
                     `;
-                    tbodyParaReporte+= `
+                    tbodyParaReporte += `
                         <tr class="infoEstudiantesRender">
                             <td class="col-2">#${index + 1}</td>
                             <td class="col-2">${e.nombres}</td>
@@ -839,28 +847,39 @@
 
 
                     try {
-                        console.log(`http://localhost:3000/api/public/curso/${idCursoCambios}/notas/cambios`);
-                                const response = await fetch(`http://localhost:3000/api/public/generarReporte`, {
-                                    method: "POST",
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'AccessToken': accessToken,
-                                        'RefreshToken': refreshToken
-                                    },
-                                    body: JSON.stringify({
-                                        encabezados: theadPararReporte,
-                                        cuerpo: tbodyParaReporte,
-                                        nombreProfe: nombreProfe,
-                                        nombreCurso: curso.nombre,
-                                    })
-                                });
+                        const response = await fetch(`http://localhost:3000/api/public/generarReporte`, {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'AccessToken': accessToken,
+                                'RefreshToken': refreshToken
+                            },
+                            body: JSON.stringify({
+                                encabezados: theadPararReporte,
+                                cuerpo: tbodyParaReporte,
+                                nombreProfe: nombreProfe,
+                                nombreCurso: curso.nombre,
+                            })
+                        });
 
-                                if (response.ok) {
-                                    alert("reporte generado")
-                                } else {
-                                    // Mostrar un mensaje de error si la solicitud no fue exitosa
-                                    alert("No se pudo realizar el reporte");
-                                }
+                        if (response.ok) {
+                            // Convertir la respuesta en un Blob (objeto binario)
+                            const blob = await response.blob();
+
+                            // Crear un enlace (link) para descargar el PDF
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = url;
+                            a.download = 'reporte.pdf'; // Nombre del archivo para descargar
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            alert("reporte generado")
+                        } else {
+                            // Mostrar un mensaje de error si la solicitud no fue exitosa
+                            alert("No se pudo realizar el reporte");
+                        }
                     } catch (error) {
                         console.log(error);
                     }
@@ -873,6 +892,7 @@
                 estudiantes.forEach((e, index) => {
                     const btn = document.getElementById(`btn-modificarNota${index + 1}`);
                     btn.addEventListener('click', () => {
+                        console.log("cambiando");
                         const columnaInfo = infoTablaEstudiantes.querySelectorAll('.infoEstudiantesRender')[index]
                         const inpustNotaNodo = columnaInfo.querySelectorAll('.nota')
                         let inputs = [];
@@ -891,7 +911,7 @@
                             }
                             try {
 
-                                console.log(`${process.env.CLIENT_URL}/api/public/curso/${idCursoCambios}/notas/cambios`);
+                                console.log(`${URLBASE}/api/public/curso/${idCursoCambios}/notas/cambios`);
                                 const response = await fetch(`http://localhost:3000/api/public/curso/${idCursoCambios}/notas/cambios`, {
                                     method: "PUT",
                                     headers: {
@@ -917,12 +937,9 @@
                                 console.log(error);
                             }
 
-
-
-
-
                         })
                         window.location.reload()
+
                     });
                 });
             });

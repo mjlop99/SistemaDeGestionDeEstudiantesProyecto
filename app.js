@@ -9,9 +9,10 @@ const rutasReenvio=require('./routes/privates/envio')
 const APP= express();
 const PORT=process.env.PORT || 3000;
 
+console.log(process.env.MONGO_URI);
 mongoose.connect(process.env.MONGO_URI).
     then(()=> console.log("se ha conectado a la base de datos")).
-    catch(()=> console.log("error al conectarse a la base de datos"));
+    catch((error)=> console.log("error al conectarse a la base de datos",error));
 
 APP.use(bodyParser.json());
 APP.use(express.json());

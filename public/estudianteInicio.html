@@ -7,134 +7,148 @@
     <title></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-        <style>
-            .navbar-custom {
-                background-color: #401a64 !important;
-    
-                .nav-link {
-                    color: white;
+    <style>
+        .navbar-custom {
+            background-color: #401a64 !important;
+
+            .nav-link {
+                color: white;
+            }
+        }
+
+        main {
+            h1 {
+                width: 100%;
+                margin: 0 20px;
+            }
+
+            .InfoCursoActividad {
+                display: flex;
+            }
+
+            .cursos-container {
+                margin: 20px;
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+
+
+                .curso {
+                    padding: 10px;
+                    width: 300px;
+                    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                    transition: transform 500ms ease-in-out, margin-right 200ms ease-in-out;
+
+                }
+
+                .curso:hover {
+                    transform: scale(1.15);
+                    margin-right: 0 10px 0 0;
                 }
             }
-    
-            main {
-                h1 {
-                    width: 100%;
-                    margin: 0 20px;
-                }
-    
-                .InfoCursoActividad {
-                    display: flex;
-                }
-    
-                .cursos-container {
+
+            .info-buscador {
+                display: grid;
+                grid-template-columns: 1fr;
+                place-items: center;
+
+
+                #formulariEstudiantesHandler {
                     margin: 20px;
+                    display: grid;
+                    grid-template-columns: 150px 300px;
+                    place-content: center;
+                    gap: 10px;
+
+                    .btn-container {
+                        display: flex;
+                        justify-content: center;
+                        margin: 20px;
+                    }
+
+                    .btn-custom {
+                        margin: 0 16px !important;
+                        padding: 8px !important;
+                    }
+
+                    .btn-limited {
+                        width: auto;
+                        /* Ajusta el ancho automáticamente al contenido */
+                        margin: 20px auto;
+                        /* Centra el botón horizontalmente */
+                    }
+
+                    .table {
+                        width: 75%;
+                        max-width: 90%;
+                        margin: 0 auto;
+
+                    }
+                }
+
+                .btns-Estudiantes,
+                .btns-Cursos {
+                    margin-top: 20px;
+                }
+
+                #infoCursos {
                     display: flex;
                     flex-wrap: wrap;
-                    gap: 8px;
-    
-    
+                    margin-top: 20px;
+                    gap: 12px;
+
                     .curso {
-                        padding: 10px;
-                        width: 300px;
-                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-                        transition: transform 500ms ease-in-out, margin-right 200ms ease-in-out;
-    
-                    }
-    
-                    .curso:hover {
-                        transform: scale(1.15);
-                        margin-right: 0 10px 0 0;
+                        width: 400px;
+                        padding: 20px;
+                        box-shadow: 4px 4px 4px rgba(0, 0, 0, 0.1);
                     }
                 }
-    
-                .info-buscador {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    place-items: center;
-    
-                    #formularioMatricularEstudiante,
-                    #formularioCursosHandler {
-                        margin-top: 20px;
-                        display: grid;
-                        grid-template-columns: 150px 300px;
-                        place-content: center;
-                        gap: 10px;
-    
-                        .btn-container {
-                            display: flex;
-                            justify-content: center;
-                            margin: 20px;
-                        }
-    
-                        .btn-custom {
-                            margin: 0 16px !important;
-                            padding: 8px !important;
-                        }
-    
-                        .btn-limited {
-                            width: auto;
-                            /* Ajusta el ancho automáticamente al contenido */
-                            margin: 20px auto;
-                            /* Centra el botón horizontalmente */
-                        }
-    
-                        .table {
-                            width: 75%;
-                            max-width: 90%;
-                            margin: 0 auto;
-    
-                        }
-                    }
-    
-                    .btns-Estudiantes,
-                    .btns-Cursos {
-                        margin-top: 20px;
-                    }
-    
-                }
-    
-                #InfoCursoActividadContainer {
-                    display: none;
-                    justify-content: space-around;
-    
-                    #cursoInfoContainer {
-                        margin: 40px;
-    
-                        #info-curso {
-                            display: flex;
-                            flex-direction: column;
-                        }
-                    }
-    
-    
-                    .agregarActividad {
-                        margin: 40px;
-    
-                        form {
-                            display: flex;
-                            gap: 4px;
-                        }
-    
+
+            }
+
+            #InfoCursoActividadContainer {
+                display: none;
+                justify-content: space-around;
+
+                #cursoInfoContainer {
+                    margin: 40px;
+
+                    #info-curso {
+                        display: flex;
+                        flex-direction: column;
                     }
                 }
-    
-                #estudiantes-info {
-                    display: none;
-                    flex-direction: column;
-                    justify-content: center;
-                    margin: 80px;
-    
-                    .agregarEStudianteForm {
-    
-                        width: 60%;
-    
-    
+
+
+                .agregarActividad {
+                    margin: 40px;
+
+                    form {
+                        display: flex;
+                        gap: 4px;
                     }
-    
+
                 }
             }
-        </style>
+
+            #estudiantes-info {
+                display: none;
+                flex-direction: column;
+                justify-content: center;
+                margin: 80px;
+
+                .agregarEStudianteForm {
+
+                    width: 60%;
+
+
+                }
+
+            }
+        }
+    </style>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary navbar-custom">
         <div class="container-fluid">
@@ -167,82 +181,198 @@
             </div>
         </div>
     </nav>
-    
+
     <main>
         <div id="bienvenida">
-            <h1>bienvenido director: </h1>
+            <h1 id="texto Bienvenida" class="text-center">bienvenido: </h1>
         </div>
 
-        <div id="gestor">
-            <div class="agregarProfesorForm">
-                <h1 class="text-center">Gestion de Profesor</h1>
-                <form id="formularioProfesorsHandler" class="row">
-                    <label for="codigoProfesor">Codigo :</label>
-                    <input type="text" id="codigoProfesor" disabled>
-                    <label for="correoProfesor">Correo :</label>
-                    <input type="text" id="correoProfesor" value="maestro3@es.com">
-                    <label for="NombresProfesor">nombres profesor:</label>
-                    <input type="text" id="NombresProfesor" value="juan manuel">
-                    <label for="apellidosProfesor">apellidos profesor:</label>
-                    <input type="text" id="apellidosProfesor" value="lemus reyes">
-                    <label for="contrasenaProfesor">contrasena:</label>
-                    <input type="password" id="contrasenaProfesor" disabled>
-
-                    <label for="cantidadAlumno">cursos totales:</label>
-                    <input type="text" id="cantidadAlumno" disabled>
-
-                    <label for="ComboxCursos">Tus Actividades:</label>
-                    <select class="form-control" id="ComboxCursos">
-                        <option value="">Selecciona una opción</option>
-                    </select>
-                </form>
-            </div>
+        <div class="info-buscador">
             <div class="agregarAlumnoForm">
-                <h1 class="text-center">Gestion de Alumnos</h1>
+                <h1 class="text-center">ACTUALIZAR INFO</h1>
                 <form id="formulariEstudiantesHandler" class="row">
                     <label for="codigoAlumno">Codigo :</label>
-                    <input type="text" id="codigoAlumno" disabled>
+                    <input type="text" id="codigoAlumno">
                     <label for="correoAlumno">Correo :</label>
                     <input type="text" id="correoAlumno" value="estudiante@es.com">
-                    <label for="nombresAlumno">Alumno nombres:</label>
+                    <label for="nombresAlumno">Nombres:</label>
                     <input type="text" id="nombresAlumno" value="luis fernando">
-                    <label for="apellidosAlumno">Alumno apellidos:</label>
+                    <label for="apellidosAlumno">Apellidos:</label>
                     <input type="text" id="apellidosAlumno" value="gonzales giron">
-                    <label for="contrasenaAlumno">Alumno contraseña:</label>
+                    <label for="contrasenaAlumno">contraseña:</label>
                     <input type="text" id="contrasenaAlumno" disabled>
-                    <label for="cantidadCursos">cursos inscritos:</label>
-                    <input type="text" id="cantidadCursos" disabled>
-                    <label for="ComboxCursos">Tus Actividades:</label>
-                    <select class="form-control" id="ComboxCursos">
-                        <option value="">Selecciona una opción</option>
-                    </select>
                 </form>
             </div>
-            <div class="btns-Profesor">
-                <button type="button" id="btnAgregarpROFESOR" class="btn btn-secondary btn-limited btn-custom">CREAR
-                    PROFESOR</button>
-                <button type="button" id="btnBuscarProfesor"
-                    class="btn btn-secondary btn-limited btn-custom">BUSCAR</button>
-                <button type="button" id="btnMatricularProfesor"
-                    class="btn btn-secondary btn-limited btn-custom">CONTRATAR</button>
-                <button type="button" id="btnEliminarProfesor"
-                    class="btn btn-secondary btn-limited btn-custom">ELIMINAR</button>
-                <button type="button" id="btnLimpiarProfesor"
-                    class="btn btn-secondary btn-limited btn-custom">LIMPIAR</button>
-            </div>
             <div class="btns-Estudiante">
-                <button type="button" id="btnAgregarEstudiante" class="btn btn-secondary btn-limited btn-custom">CREAR
-                    ESTUDIANTE </button>
-                <button type="button" id="btnBuscarEstudiante"
-                    class="btn btn-secondary btn-limited btn-custom">BUSCAR</button>
-                <button type="button" id="btnEliminaEstudiante"
-                    class="btn btn-secondary btn-limited btn-custom">ELIMINAR</button>
                 <button type="button" id="btnModificarEstudiante"
-                    class="btn btn-secondary btn-limited btn-custom">MODIFICAR</button>
+                    class="btn btn-secondary btn-limited btn-custom">ACTUALIZAR</button>
                 <button type="button" id="btnLimpiarCurso"
                     class="btn btn-secondary btn-limited btn-custom">LIMPIAR</button>
             </div>
+
+            <div id="infoCursos">
+            </div>
     </main>
+    <script>
+        // Variables para botones de estudiantes
+        const btnModificarEstudiante = document.getElementById('btnModificarEstudiante');
+        const btnLimpiarCurso = document.getElementById('btnLimpiarCurso');
+
+        // Variables para componentes
+        const formularioEstudiantesHandler = document.getElementById('formulariEstudiantesHandler');
+        const codigoAlumno = document.getElementById('codigoAlumno');
+        const correoAlumno = document.getElementById('correoAlumno');
+        const nombresAlumno = document.getElementById('nombresAlumno');
+        const apellidosAlumno = document.getElementById('apellidosAlumno');
+        const contrasenaAlumno = document.getElementById('contrasenaAlumno');
+
+
+
+        // Variables para navegación
+        const cursosVer = document.getElementById('CursosVer');
+        const accessToken = localStorage.getItem('accessToken')
+        const refreshToken = localStorage.getItem('refreshToken')
+        const infoCursos = document.getElementById('infoCursos')
+
+        document.addEventListener('DOMContentLoaded', async () => {
+
+            const infoAlumno = await buscarInfoAlumno()
+            if (!infoAlumno) {
+                alert("no tiene permiso")
+            }
+            const cursos = await buscarCursos(codigoAlumno.value)
+
+            await establecerCursos(cursos)
+        })
+
+        const buscarInfoAlumno = async () => {
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/usuariobyToken`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    }
+                });
+
+                if (response.ok) {
+                    const alumno = await response.json();
+                    if (alumno) {
+                        codigoAlumno.value = alumno._id;
+                        nombresAlumno.value = `${alumno.nombres}`;
+                        apellidosAlumno.value = `${alumno.apellidos}`;
+                        correoAlumno.value = `${alumno.correo}`;
+                        bienvenida.innerHTML = `
+                            <h3>Bienvenido alumno: ${alumno.nombres} ${alumno.nombres}</h3>
+                        `;
+                        return alumno;
+                    }
+
+                } else {
+                    alert("No se encontró al alumno");
+                }
+            } catch (error) {
+                console.log(error);
+            }
+
+        }
+
+        const buscarCursos = async (idAlumno) => {
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/misCursos/estudiantes/${idAlumno}`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    }
+                });
+
+                if (response.ok) {
+                    const cursosData = await response.json()
+
+                    return cursosData;
+                } else {
+                    // Mostrar un mensaje de error si la solicitud no fue exitosa
+                    alert("No se encontro el curso.");
+                }
+            } catch (error) {
+                console.log(error);
+            }
+        }
+
+        const establecerCursos = (cursos) => {
+            let info = '<h1>Tus Cursos</h1>';
+            cursos.forEach((c, index) => {
+                info += `<div class="curso">
+                    <h4>${c.cursoNombre}</h4>
+                    <p>ID del Curso: ${c.cursoId}</p>
+                    <p>Actividades: ${c.estudianteActividades.length}</p>
+                    <button type="button" id="btnResultados${index + 1}"
+                class="btn btn-secondary btn-limited btn-custom">IMPRIMIR RESULTADOS</button>
+                 </div>`;
+            });
+            infoCursos.innerHTML = info;
+
+
+
+
+
+            // Add event listeners after the content has been added to the DOM
+            cursos.forEach((c, index) => {
+                let encabezadosReporte = ''
+                let cuerpoReporte = ''
+                c.estudianteActividades.forEach(a => {
+                    encabezadosReporte += `<th scope="col" class="col-2">${a.actividadNombre}</th>`
+                    cuerpoReporte+=`<th scope="col" class="col-2">${a.nota}</th>`
+                })
+
+                console.log(encabezadosReporte);
+                console.log(cuerpoReporte);
+                document.getElementById(`btnResultados${index + 1}`).addEventListener('click', async () => {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/public/generarReporte/estudiante`, {
+                            method: "POST",
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'AccessToken': accessToken,
+                                'RefreshToken': refreshToken
+                            },
+                            body: JSON.stringify({
+                                encabezados: encabezadosReporte,
+                                cuerpo: cuerpoReporte,
+                                nombreAlumno: `${nombresAlumno.value} ${apellidosAlumno.value}`,
+                                nombreCurso: c.cursoNombre,
+                            })
+                        });
+
+                        if (response.ok) {
+                            // Convertir la respuesta en un Blob (objeto binario)
+                            const blob = await response.blob();
+
+                            // Crear un enlace (link) para descargar el PDF
+                            const url = window.URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.style.display = 'none';
+                            a.href = url;
+                            a.download = 'reporte.pdf'; // Nombre del archivo para descargar
+                            document.body.appendChild(a);
+                            a.click();
+                            window.URL.revokeObjectURL(url);
+                            alert("reporte generado")
+                        } else {
+                            // Mostrar un mensaje de error si la solicitud no fue exitosa
+                            alert("No se pudo realizar el reporte");
+                        }
+                    } catch (error) {
+                        console.log(error);
+                    }
+                });
+            });
+        }
+
+    </script>
 
 
 </body>

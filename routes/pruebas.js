@@ -190,6 +190,37 @@ router.post('/curso/:id/actividad', async (req, res) => {
     return res.status(500).send('Ha ocurrido un error al modificar el curso');
   }
 });
+//optener los cursos de un estudiante
+router.get('/misCursos/estudiantes/:id', async (req, res) => {
+  const estudianteId = req.params.id;
+
+  try {
+    // Buscar el curso que contiene al estudiante con el ID proporcionado
+    let cursos = await CURSO.find({});
+    cursos = cursos.filter(curso => curso.estudiantes.some(est => est._id === estudianteId));
+
+    if (!cursos) {
+      return res.status(404).json({ message: 'Estudiante no encontrado' });
+    }
+
+    const estudiantes = cursos.map(c => c.estudiantes).flat()
+
+    // const infoNombre=cursos.map(c=>c.nombre)
+    // const ids=cursos.map(c=>c._id)
+    // const estudianteActividades=estudiantes.filter(e=>e._id===estudianteId)
+
+    const cursosInfo = cursos.map(c => ({
+      cursoNombre: c.nombre,
+      cursoId: c._id,
+      estudianteActividades: c.estudiantes.find(est => est._id === estudianteId).actividadesAsignadas
+    }));
+
+    res.json(cursosInfo);
+  } catch (error) {
+    console.error('Error al buscar el estudiante', error);
+    res.status(500).json({ message: 'Error al buscar el estudiante' });
+  }
+});
 
 
 
@@ -297,6 +328,8 @@ router.delete('/curso/:id/eliminarEstudiante', async (req, res) => {
   const idCurso = req.params.id;
   const idAlumno = req.body.idEstudiante;
   console.log("eliminando");
+  console.log(idCurso);
+  console.log(idAlumno);
   try {
     // Verificar si el curso ya se ha credo creado este curso 
     const cursoExistente = await CURSO.findOne({ _id: idCurso });
@@ -387,20 +420,222 @@ function limpiarNombreArchivo(nombre) {
   return nombre.replace(/[^\w\s.-]/gi, ''); // Remueve caracteres especiales excepto letras, números, espacios, guiones y puntos
 }
 
+// Ruta para generar el reporte en formato PDF para Maestros
+// router.post('/generarReporte', async (req, res) => {
+//   const listaDeEncabezados = req.body.encabezados;
+//   const cuerpo = req.body.cuerpo;
+//   const nombreProfe = req.body.nombreProfe;
+//   const nombre = limpiarNombreArchivo(nombreProfe.replace(/\s+/g, '-'));
+//   const nombreCurso = req.body.nombreCurso;
+
+//   const browser = await puppeteer.launch();
+//   const page = await browser.newPage();
+
+//   try {
+//     await page.setContent(`
+//       <!doctype html>
+//       <html lang="en">
+//       <head>
+//           <meta charset="utf-8">
+//           <meta name="viewport" content="width=device-width, initial-scale=1">
+//           <title>Sistema de gestion Estudiantil</title>
+//           <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+//               integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+//            <style>
+//       body {
+//         padding: 40px 20px;
+//       }
+//     </style>
+//       </head>
+//       <body>
+//           <main>
+//               <h2>Profesor: ${nombreProfe}</h2>
+//               <h2>Curso: ${nombreCurso}</h2>
+//               <table class="table table-responsive table-bordered table-hover table-striped p-4" id="tablaEstudiantes">
+//                   <thead id="encabezado">
+//                       <tr id="encabezadosTablaEstudiantes" class="table-active">
+//                           ${listaDeEncabezados}
+//                       </tr>
+//                   </thead>
+//                   <tbody id="infoTablaEstudiantes">
+//                     ${cuerpo}
+//                   </tbody>
+//               </table>
+//           </main>
+//       </body>
+//       </html>
+//     `);
+
+//     await page.waitForSelector('#tablaEstudiantes');
+//     const fecha = obtenerFechaFormateada();
+//     const nombrePdf = `reporte_maestro_${nombre}_${nombreCurso}_${fecha}.pdf`;
+//     const pathToSave = './pdfs/'; // Directorio donde se guardarán los archivos
+
+//     // Verificar si el directorio existe, si no existe, crearlo
+//     const fs = require('fs');
+//     if (!fs.existsSync(pathToSave)) {
+//       fs.mkdirSync(pathToSave, { recursive: true });
+//     }
+
+//     await page.pdf({ path: pathToSave + nombrePdf, format: 'A4' });
+
+//     await browser.close();
+//     console.log('PDF generado con éxito:', nombrePdf);
+
+//     return res.status(200).send({ mensaje: "PDF generado", nombrePdf });
+
+//   } catch (error) {
+//     console.error('Error al generar el PDF:', error);
+//     return res.status(400).send({ mensaje: "Error al generar el PDF" });
+//   }
+// });
 // Ruta para generar el reporte en formato PDF
+router.post('/generarReporte/estudiante', async (req, res) => {
+  const listaDeEncabezados = req.body.encabezados;
+  const cuerpo = req.body.cuerpo;
+  // const cuerpo = req.body.cuerpo;
+  const nombreAlumno = req.body.nombreAlumno;
+  const nombreCurso = req.body.nombreCurso;
+
+  try {
+    const htmlContent=`
+      <!doctype html>
+      <html lang="en">
+      <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Sistema de gestion Estudiantil</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+              integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+           <style>
+      body {
+        padding: 40px 20px;
+      }
+    </style>
+      </head>
+      <body>
+          <main>
+              <h2>Profesor: ${nombreAlumno}</h2>
+              <h2>Curso: ${nombreCurso}</h2>
+              <table class="table table-responsive table-bordered table-hover table-striped p-4" id="tablaEstudiantes">
+                  <thead id="encabezado">
+                      <tr id="encabezadosTablaEstudiantes" class="table-active">
+                          ${listaDeEncabezados}
+                      </tr>
+                  </thead>
+                  <tbody id="infoTablaEstudiantes">
+                      <tr id="notasTablaEstudiantes" class="table-active">
+                          ${cuerpo}
+                      </tr>
+                  </tbody>
+              </table>
+          </main>
+      </body>
+      </html>
+    `;
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    })
+
+    const page = await browser.newPage()
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
+
+    const pdfBuffer = await page.pdf({ format: 'A4' })
+        await browser.close()
+
+        const timespan = new Date().toISOString().replace(/:/g, '-')
+        const pdfFilename = `reporte-${timespan}.pdf`
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=${pdfFilename}`,
+            'Content-Length': pdfBuffer.length
+        })
+        res.send(pdfBuffer)
+
+  } catch (error) {
+    console.error('Error al generar el PDF:', error);
+    return res.status(400).send({ mensaje: "Error al generar el PDF" });
+  };
+
+});
+router.post('/generarReporte/director', async (req, res) => {
+  const listaDeEncabezados = req.body.encabezados;
+  const cuerpo = req.body.cuerpo;
+  const nombreDirector = req.body.nombreDirector;
+
+  try {
+    const htmlContent=`
+      <!doctype html>
+      <html lang="en">
+      <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>Sistema de gestion Estudiantil</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+              integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+           <style>
+      body {
+        padding: 40px 20px;
+      }
+    </style>
+      </head>
+      <body>
+          <main>
+              <h2>Director: ${nombreDirector}</h2>
+              <h2>Curso: todos los cursos disponibles</h2>
+              <table class="table table-responsive table-bordered table-hover table-striped p-4" id="tablaEstudiantes">
+                  <thead id="encabezado">
+                      <tr id="encabezadosTablaEstudiantes" class="table-active">
+                          ${listaDeEncabezados}
+                      </tr>
+                  </thead>
+                  <tbody id="infoTablaEstudiantes">
+                      <tr id="notasTablaEstudiantes" class="table-active">
+                          ${cuerpo}
+                      </tr>
+                  </tbody>
+              </table>
+          </main>
+      </body>
+      </html>
+    `;
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    })
+
+    const page = await browser.newPage()
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
+
+    const pdfBuffer = await page.pdf({ format: 'A4' })
+        await browser.close()
+
+        const timespan = new Date().toISOString().replace(/:/g, '-')
+        const pdfFilename = `reporte-${timespan}.pdf`
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=${pdfFilename}`,
+            'Content-Length': pdfBuffer.length
+        })
+        res.send(pdfBuffer)
+
+  } catch (error) {
+    console.error('Error al generar el PDF:', error);
+    return res.status(400).send({ mensaje: "Error al generar el PDF" });
+  };
+
+});
+
 router.post('/generarReporte', async (req, res) => {
   const listaDeEncabezados = req.body.encabezados;
   const cuerpo = req.body.cuerpo;
   const nombreProfe = req.body.nombreProfe;
-  const nombre = limpiarNombreArchivo(nombreProfe.replace(/\s+/g, '-'));
   const nombreCurso = req.body.nombreCurso;
 
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-
   try {
-    await page.setContent(`
-      <!doctype html>
+    const htmlContent=`
+    <!doctype html>
       <html lang="en">
       <head>
           <meta charset="utf-8">
@@ -431,30 +666,33 @@ router.post('/generarReporte', async (req, res) => {
           </main>
       </body>
       </html>
-    `);
+    `
+    ;
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    })
 
-    await page.waitForSelector('#tablaEstudiantes');
-    const fecha = obtenerFechaFormateada();
-    const nombrePdf = `reporte_maestro_${nombre}_${nombreCurso}_${fecha}.pdf`;
-    const pathToSave = './pdfs/'; // Directorio donde se guardarán los archivos
+    const page = await browser.newPage()
+    await page.setContent(htmlContent, { waitUntil: 'networkidle0' })
 
-    // Verificar si el directorio existe, si no existe, crearlo
-    const fs = require('fs');
-    if (!fs.existsSync(pathToSave)) {
-      fs.mkdirSync(pathToSave, { recursive: true });
-    }
+    const pdfBuffer = await page.pdf({ format: 'A4' })
+        await browser.close()
 
-    await page.pdf({ path: pathToSave + nombrePdf, format: 'A4' });
-
-    await browser.close();
-    console.log('PDF generado con éxito:', nombrePdf);
-
-    return res.status(200).send({ mensaje: "PDF generado", nombrePdf });
+        const timespan = new Date().toISOString().replace(/:/g, '-')
+        const pdfFilename = `reporte-${timespan}.pdf`
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=${pdfFilename}`,
+            'Content-Length': pdfBuffer.length
+        })
+        res.send(pdfBuffer)
 
   } catch (error) {
     console.error('Error al generar el PDF:', error);
     return res.status(400).send({ mensaje: "Error al generar el PDF" });
-  }
+  };
+
 });
 
 module.exports = router;
