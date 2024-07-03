@@ -3,11 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Ingreso de Correo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        nav {
+            background-color: #401a64;
+            padding: 1em;
+            display: flex;
+            align-items: center;
+        }
+        .nav-home {
+            color: white;
+            text-decoration: none;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .content {
+            padding: 2em;
+            text-align: center;
+        }
+        h1 {
+            color: #401a64;
+        }
+        label {
+            display: block;
+            margin: 1em 0 0.5em;
+            font-weight: bold;
+        }
+        input[type="email"] {
+            width: 100%;
+            padding: 0.5em;
+            margin-bottom: 1em;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="button"] {
+            background-color: #401a64;
+            color: white;
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="button"]:hover {
+            background-color: #34104a;
+        }
+    </style>
 </head>
 <body>
-    <label for="Correo: ">correo</label>
-    <input type="text" id="Correo">
-    <input type="button" value="enviar">
+    <nav>
+        <a href="index.html" class="nav-home">Home</a>
+    </nav>
+    <div class="content">
+        <h1>Ingreso de Correo</h1>
+        <label for="InputCorreo">Correo:</label>
+        <input type="email" id="InputCorreo" placeholder="Ingresa tu correo">
+        <input type="button" value="Enviar" onclick="sendEmail()">
+    </div>
+
+    <script>
+        async function sendEmail() {
+            const correo = document.getElementById('InputCorreo').value;
+            const response = await fetch('/api/public/sendEmail', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ correo }),
+            });
+
+            const data = await response.json();
+            alert(data.message);
+        }
+    </script>
 </body>
 </html>

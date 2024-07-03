@@ -325,6 +325,7 @@ router.post('/confirmar/:token', async (req, res) => {
 // Recuperar contraseña 
 router.post('/sendEmail', async (req, res) => {
   const { correo } = req.body   // Capturamos el correo
+  console.log(correo)
   try {
     const usuario = await USUARIO.findOne({ correo })  //Validamos si el usuario existe
     if (!usuario) {
@@ -348,7 +349,7 @@ router.post('/sendEmail', async (req, res) => {
       to: usuario.correo,
       from: process.env.S_EMAIL,
       subject: 'Recuperación de Contraseña',
-      text: `Haz clic en el siguiente enlace para recuperar tu contraseña: http://localhost:3000/api/public/changePassword/${token}`
+      text: `Haz clic en el siguiente enlace para recuperar tu contraseña: http://localhost:3000/CambioContrasena.html?token=${token}` 
       //Depende de el puerto y la direccion de Frontend
     };
 
@@ -361,7 +362,7 @@ router.post('/sendEmail', async (req, res) => {
 })
 
 
-router.post('/changePassword', async (req, res) => {
+router.post('/changePassword/:token', async (req, res) => {
   const { token } = req.params;   //Captura del Token y la Nueva Contraseña
   const { newPassword } = req.body;
 
