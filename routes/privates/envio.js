@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const nodemailer = require('nodemailer')
 const { generarAccessToken, generarRefreshToken, verificarToken } = require('../../utils/jwt');
+const path=require('path')
 require('dotenv').config();
 
 
@@ -19,11 +20,12 @@ router.get('/inicios/maestro', (req, res) => {
 
   try {
     if (info.role==='maestro') {
-      return res.status(200).sendFile('/home/mj99lopez/Escritorio/SistemaDeGestionDeEstudiantesProyecto/public/inicioMaestros.html')
+      const filePath = path.join(__dirname, '../../public/inicioMaestros.html')
+      return res.status(200).sendFile(filePath)
     }else{
       return res.status(403).json({ message: "No autorizado" });
     }
-  
+    
   } catch (error) {
     console.log(error);
   }
@@ -32,32 +34,34 @@ router.get('/inicios/maestro', (req, res) => {
 router.get('/inicios/director', (req, res) => {
   const accessToken = req.headers['accesstoken']
   const refreshToken = req.headers['refreshtoken']
-
+  
   const info=tokenDestructurado(accessToken,refreshToken)
-
+  
   if (!info || info === null) {
     return res.status(401).send({mensaje:"no tienes permiso"})
   }
-
+  
   if (info.role==='director') {
-    return res.status(200).sendFile('/home/mj99lopez/Escritorio/SistemaDeGestionDeEstudiantesProyecto/public/inicioMaestros.html')
+    const filePath = path.join(__dirname, '../../public/directorInicio.html')
+    return res.status(200).sendFile(filePath)
   }else{
     return res.status(403).json({ message: "No autorizado" });
   }
-
+  
 })
 router.get('/inicios/estudiante', (req, res) => {
   const accessToken = req.headers['accesstoken']
   const refreshToken = req.headers['refreshtoken']
-
+  
   const info=tokenDestructurado(accessToken,refreshToken)
-
+  
   if (!info || info === null) {
     return res.status(401).send({mensaje:"no tienes permiso"})
   }
-
+  
   if (info.role==='estudiante') {
-    return res.status(200).sendFile('/home/mj99lopez/Escritorio/SistemaDeGestionDeEstudiantesProyecto/public/estudianteInicio.html')
+    const filePath = path.join(__dirname, '../../public/estudianteInicio.html')
+    return res.status(200).sendFile(filePath)
   }else{
     return res.status(403).json({ message: "No autorizado" });
   }
