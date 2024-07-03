@@ -158,24 +158,7 @@
                         <a class="nav-link" aria-current="page" href="/">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a id="CursosVer" class="nav-link" href="#">Maestros</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Estudiantes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Log out</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            Otras Opciones
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Agregar Cursos</a></li>
-                            <li><a class="dropdown-item" href="#">Agregar actividad</a></li>
-                            <li><a class="dropdown-item" href="#">logout</a></li>
-                        </ul>
+                        <a class="nav-link" id="logOut" href="#">Log out</a>
                     </li>
                 </ul>
             </div>
@@ -189,16 +172,16 @@
 
         <div class="info-buscador">
             <div class="agregarAlumnoForm">
-                <h1 class="text-center">ACTUALIZAR INFO</h1>
+                <h1 class="text-center">MI INFO</h1>
                 <form id="formulariEstudiantesHandler" class="row">
                     <label for="codigoAlumno">Codigo :</label>
                     <input type="text" id="codigoAlumno">
                     <label for="correoAlumno">Correo :</label>
-                    <input type="text" id="correoAlumno" value="estudiante@es.com">
+                    <input type="text" id="correoAlumno" disabled>
                     <label for="nombresAlumno">Nombres:</label>
-                    <input type="text" id="nombresAlumno" value="luis fernando">
+                    <input type="text" id="nombresAlumno" disabled>
                     <label for="apellidosAlumno">Apellidos:</label>
-                    <input type="text" id="apellidosAlumno" value="gonzales giron">
+                    <input type="text" id="apellidosAlumno" disabled>
                     <label for="contrasenaAlumno">contraseña:</label>
                     <input type="text" id="contrasenaAlumno" disabled>
                 </form>
@@ -235,14 +218,42 @@
         const infoCursos = document.getElementById('infoCursos')
 
         document.addEventListener('DOMContentLoaded', async () => {
-
-            const infoAlumno = await buscarInfoAlumno()
-            if (!infoAlumno) {
-                alert("no tiene permiso")
+            if (accessToken == null && refreshToken == null) {
+                alert("no tienes permiso")
+                window.location.href = "./"
+                return
             }
-            const cursos = await buscarCursos(codigoAlumno.value)
 
-            await establecerCursos(cursos)
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/permiso`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    }
+                });
+
+                if (response.ok) {
+                    const infoAlumno = await buscarInfoAlumno()
+                    if (!infoAlumno) {
+                        alert("no tiene permiso")
+                    }
+                    const cursos = await buscarCursos(codigoAlumno.value)
+
+                    await establecerCursos(cursos)
+                } else {
+                    alert("no tienes permiso")
+                    window.location.href = "./"
+                    console.log(response);
+                }
+            } catch (error) {
+                alert("ha ocurrido un error")
+                console.log(error);
+                window.location.href = "./"
+            }
+
+
         })
 
         const buscarInfoAlumno = async () => {
@@ -325,7 +336,7 @@
                 let cuerpoReporte = ''
                 c.estudianteActividades.forEach(a => {
                     encabezadosReporte += `<th scope="col" class="col-2">${a.actividadNombre}</th>`
-                    cuerpoReporte+=`<th scope="col" class="col-2">${a.nota}</th>`
+                    cuerpoReporte += `<th scope="col" class="col-2">${a.nota}</th>`
                 })
 
                 console.log(encabezadosReporte);
@@ -371,6 +382,15 @@
                 });
             });
         }
+        logOut.addEventListener('click', (e) => {
+            e.preventDefault()
+            // Eliminar un elemento del localStorage
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+
+            alert("sesion cerrada")
+            window.location.href = "./"
+        })
 
     </script>
 

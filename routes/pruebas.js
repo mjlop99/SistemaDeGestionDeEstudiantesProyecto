@@ -27,6 +27,7 @@ router.post('/curso/crear/', async (req, res) => {
       return res.status(401).send('Error: tú no eres un profesor válido');
     }
     const profesor = decoded.id
+    const nombreProfesor = `${profesorExistente.nombres} ${profesorExistente.apellidos}`
 
     // Verificar si el profesor ya ha creado este curso
 
@@ -43,6 +44,7 @@ router.post('/curso/crear/', async (req, res) => {
     const nuevoCurso = new CURSO({
       nombre,
       profesor,
+      nombreProfesor,
       actividades: actividadesEStablecidads
     });
 
@@ -63,7 +65,7 @@ router.get('/cursos', async (req, res) => {
   const refreshToken = req.headers['refreshtoken'];
   try {
     const cursos = await CURSO.find({});
-    const cursosDisponibles = cursos.map(c => ({ nombre: c.nombre, profesor: c.profesor, alumnos: c.estudiantes.length }))
+    const cursosDisponibles = cursos.map(c => ({ nombre: c.nombre, profesor: c.profesor,nombreProfesor:c.nombreProfesor, alumnos: c.estudiantes.length }))
     return res.status(200).json(cursosDisponibles);
   } catch (error) {
     console.error('Error al obtener los cursos:', error);
@@ -300,6 +302,15 @@ router.post('/curso/:id/matricular', async (req, res) => {
     if (!estudianteExistente) {
       return res.status(401).send('Error: este alumno no ha sido registrado');
     }
+
+    //verifica que el alumno no ha sido registrado
+
+     // Verificar si el estudiante ya está matriculado en el curso
+    const estudianteYaMatriculado = cursoExistente.estudiantes.some(estudiante => estudiante._id.toString() === idAlumno);
+    if (estudianteYaMatriculado) {
+      return res.status(400).send('Error: Este estudiante ya está matriculado en este curso');
+    }
+
     const actividades = cursoExistente.actividades.actividadesEStablecidas
     const nuevoEstudiante = {
       _id: idAlumno,
@@ -694,6 +705,36 @@ router.post('/generarReporte', async (req, res) => {
   };
 
 });
+router.get('/permiso', async (req, res) => {
+  
+  const accessToken = req.headers['accesstoken'];
+  const refreshToken = req.headers['refreshtoken'];
+  
+  try {
+    const decoded=tokenDestructurado(accessToken,refreshToken)
+
+    if (decoded) {
+      return res.status(200).send({mensaje:"todo correto"})
+    }
+    return res.status(401).send({mensaje:"no estas autarizado"})
+    
+  } catch (error) {
+    console.log(error);
+  }
+
+  
+});
+const tokenDestructurado = (accessToken, refreshToken) => {
+  const decodedAccess = verificarToken(accessToken, process.env.JWT_SECRET);
+  const decodedRefreshAccess = verificarToken(refreshToken, process.env.JWT_SECRET);
+  if (decodedAccess || decodedRefreshAccess) {
+    const id = (decodedAccess && decodedAccess.id) || (decodedRefreshAccess && decodedRefreshAccess.id);
+    const role = (decodedAccess && decodedAccess.role) || (decodedRefreshAccess && decodedRefreshAccess.role);
+
+    return { id, role };
+  }
+  return null;
+};
 
 module.exports = router;
 

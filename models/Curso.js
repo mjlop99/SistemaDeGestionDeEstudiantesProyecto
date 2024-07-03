@@ -10,6 +10,10 @@ const cursoSchema = new Schema({
     type: String,
     required: true
   },
+  nombreProfesor: {
+    type: String,
+    required: true
+  },
   
   actividades: {
     id:{

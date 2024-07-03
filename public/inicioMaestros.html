@@ -148,23 +148,8 @@
                         <a id="CursosVer" class="nav-link" href="#">Cursos</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Estudiantes</a>
+                        <a class="nav-link" id="logOut" href="#">Log out</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Log out</a>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                            aria-expanded="false">
-                            Otras Opciones
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#">Agregar Cursos</a></li>
-                            <li><a class="dropdown-item" href="#">Agregar actividad</a></li>
-                            <li><a class="dropdown-item" href="#">logout</a></li>
-                        </ul>
-                    </li>
-                </ul>
             </div>
         </div>
     </nav>
@@ -209,7 +194,7 @@
                     <input type="text" id="ApellidosEstudiante">
 
                     <label for="contrasenaEstudiante">contraseña:</label>
-                    <input type="password" id="contrasenaEstudiante" placeholder="generar contraseña automaticamente">
+                    <input type="password" id="contrasenaEstudiante" disabled placeholder="12345">
 
                     <label for="cursoSelecionadoAlumno">Curso:</label>
                     <input type="text" id="cursoSelecionadoAlumno" disabled placeholder="Seleciona un curso">
@@ -336,6 +321,7 @@
         //navegacio
         const CursosVer = document.getElementById('CursosVer')
         const btnImprimir = document.getElementById('btnImprimir')
+        const logOut = document.getElementById('logOut')
         const URLBASE = 'http://localhost:3000'
 
         //infoProfe
@@ -350,24 +336,50 @@
         let actividadEnvio;
 
         document.addEventListener('DOMContentLoaded', async () => {
-            //TRAER DATOS DEL PROFESOR
+            if (accessToken == null && refreshToken == null) {
+                alert("no tienes permiso")
+                window.location.href = "./"
+                return
+            }
 
-            const infoProfe = await buscarInfoProfe()
-            if (infoProfe) {
-                idProfe = infoProfe._id
-                nombreProfe = `${infoProfe.nombres} ${infoProfe.apellidos}`
-            }
-            else {
-                alert("no tiene permiso")
-            }
-            // TRAER DATOS DE TODOS LOS CURSOS DEL PROFESOR
+            try {
+                const response = await fetch(`http://localhost:3000/api/public/permiso`, {
+                    method: "GET",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'AccessToken': accessToken,
+                        'RefreshToken': refreshToken
+                    }
+                });
+                
+                if (response.ok) {
+                    const infoProfe = await buscarInfoProfe()
+                    if (infoProfe) {
+                        idProfe = infoProfe._id
+                        nombreProfe = `${infoProfe.nombres} ${infoProfe.apellidos}`
+                    }
+                    else {
+                        alert("no tienes permiso")
+                        window.location.href = "./"
+                    }
+                    // TRAER DATOS DE TODOS LOS CURSOS DEL PROFESOR
 
-            const dataCursos = await buscarCursos();
-            if (dataCursos && dataCursos != null) {
-                await manipularCursos(dataCursos)
-            } else {
-                alert("no hay cursos")
+                    const dataCursos = await buscarCursos();
+                    if (dataCursos && dataCursos != null) {
+                        await manipularCursos(dataCursos)
+                    } else {
+                        alert("no hay cursos")
+                    }
+                } else {
+                    console.log(response);
+                }
+            } catch (error) {
+                alert("no tienes permiso")
+                console.log(error);
+                window.location.href = "./"
             }
+
+
 
 
         });
@@ -421,6 +433,7 @@
 
             if (response.ok) {
                 // Recargar la página si la actividad se agregó correctamente
+                alert("se ha creado alumno exitosamente")
                 window.location.reload();
             } else {
                 // Mostrar un mensaje de error si la solicitud no fue exitosa
@@ -451,8 +464,8 @@
                     NombresEstudiante.value = data.nombres
                     ApellidosEstudiante.value = data.apellidos
                     contrasenaEstudiante.setAttribute('disabled', true)
-
                     idEstudianteCambios = data._id
+                    alert("estudiante encontrado")
                 } else {
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
                     alert("No se encontro al estudiante.");
@@ -468,11 +481,13 @@
         //Limpiar compoenentes de alumno
         btnLimpiarEstudiante.addEventListener('click', (e) => {
             e.preventDefault()
+            idEstudiante.value = ''
             correoEstudiante.value = ''
             NombresEstudiante.value = ''
             ApellidosEstudiante.value = ''
             contrasenaEstudiante.value = ''
             cursoSelecionadoAlumno.value = ''
+            ComboxActividades.innerHTML='<option value="">Selecciona una opción</option>'
         })
         //matricular alumno
 
@@ -497,10 +512,11 @@
                     contrasenaEstudiante.value = ''
 
                     idEstudianteCambios = ''
+                    alert("alumno matriculado exitosamente")
                     window.location.reload()
                 } else {
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
-                    alert("No se encontro al estudiante.");
+                    alert("No se matriculo al estudiante, verifica que que el estudiante no haya sido matriculado o falten campos.");
                 }
             } catch (error) {
 
@@ -561,7 +577,7 @@
                         'AccessToken': accessToken,
                         'RefreshToken': refreshToken
                     },
-                    body: JSON.stringify({ nombre: nombreCurso.value })
+                    body: JSON.stringify({ nombre: nombreCurso.value, nombreProfesor: nombreProfe })
                 });
                 console.log(response.status);
                 if (response.ok) {
@@ -570,14 +586,15 @@
                     codigoCurso.value = ''
                     ComboxActividades.value = ''
                     actividadAgregar.value = ''
-
+                    alert("se ha creado el curso exitosamente")
                     window.location.reload()
                 } else {
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
-                    alert("No se encontro al estudiante.");
+                    alert("No se pudo crear el curso");
                 }
             } catch (error) {
-
+                alert("No se pudo crear el curso");
+                console.log(error);
             }
 
         })
@@ -602,13 +619,15 @@
                     codigoCurso.value = ''
                     ComboxActividades.value = ''
                     actividadAgregar.value = ''
-
+                    alert('SE HA ELIMINADO LA ACTIVIDAD')
                     window.location.reload()
                 } else {
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
-                    alert("No se encontro al estudiante.");
+                    alert("No se encontro LA ACTIVIDAD");
                 }
             } catch (error) {
+                console.log(error);
+                alert("No se encontro LA ACTIVIDAD");
 
             }
 
@@ -630,13 +649,15 @@
 
                 if (response.ok) {
                     // Recargar la página si la actividad se agregó correctamente
+                    alert("se ha agregado la actividad");
                     window.location.reload();
                 } else {
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
                     alert("No se pudo agregar la actividad.");
                 }
             } catch (error) {
-
+                alert("No se pudo agregar la actividad.");
+                console.log(error);
             }
 
         })
@@ -644,6 +665,7 @@
         btnLimpiarCurso.addEventListener('click', (e) => {
             console.log("limpiando cursoso");
             nombreCurso.value = ''
+            NombresProfesor.value = ''
             actividadAgregar.value = ''
             cantidadAlumno.value = ''
             codigoCurso.value = ''
@@ -667,11 +689,14 @@
                     const data = await response.json()
                     setearInfoCurso(data._id, data.nombre, nombreProfe, data.estudiantes.length, data.actividades.actividadesEStablecidas)
                     cursoSelecionadoAlumno.value = data.nombre
+                    alert('se ha encontrado el curso')
                 } else {
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
                     alert("No se pudo encontro la actividad.");
                 }
             } catch (error) {
+                console.log(error);
+                alert('no se ha encontrado el curso')
 
             }
 
@@ -725,7 +750,6 @@
 
                 if (response.ok) {
                     const cursosData = await response.json()
-
                     return cursosData;
                 } else {
                     // Mostrar un mensaje de error si la solicitud no fue exitosa
@@ -1007,6 +1031,16 @@
             console.log(encabezados);
             console.log(cuerpo);
         }
+
+        logOut.addEventListener('click', (e) => {
+            e.preventDefault()
+            // Eliminar un elemento del localStorage
+            localStorage.removeItem('accessToken');
+            localStorage.removeItem('refreshToken');
+
+            alert("sesion cerrada")
+            window.location.href = "./"
+        })
 
     </script>
 

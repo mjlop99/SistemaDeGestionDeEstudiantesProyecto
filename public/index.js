@@ -26,14 +26,6 @@ loginForm.addEventListener('submit', async (e) => {
             if (response.ok) {
                 const data = await response.json();
                 const role = data.role
-                if (role==="director") {
-
-                } else if (role==="maestro"){
-
-                } else if (role==="estudiante"){
-
-                }
-                console.log(data);
                 localStorage.setItem("accessToken", data.accessToken)
                 localStorage.setItem("refreshToken", data.refreshToken)
                 await redirigir(role)
@@ -42,14 +34,13 @@ loginForm.addEventListener('submit', async (e) => {
                 alert("Credenciales incorrectas");
             }
 
-            
+
         } catch (error) {
             console.log(error);
         }
     }
 })
 const redirigir = async (role) => {
-    console.log("REDIRGIR");
     try {
         const response = await fetch(`http://localhost:3000/api/inicios/${role}`, {
             method: "GET",
