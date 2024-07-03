@@ -463,37 +463,31 @@
 
             alert("sesion cerrada")
             window.location.href = "./"
-        })
+        })      // Función para limpiar campos del formulario de Profesor
+const limpiarCamposProfesor = () => {
+    nombresProfesorInput.value = '';
+    apellidosProfesor.value = '';
+    correoProfesorInput.value = '';
+    contrasenaProfesor.value = '';
+};
 
-        // Función para limpiar campos del formulario de Profesor
-        const limpiarCamposProfesor = () => {
-            codigoProfesorInput.value = '';
-            correoProfesorInput.value = '';
-            apellidosProfesor.value = '';
-            contrasenaProfesor.value = '';
-            cantidadAlumnoInput.value = '';
-        };
+// Función para limpiar campos del formulario de Estudiante
+const limpiarCamposEstudiante = () => {
+    nombresAlumnoInput.value = '';
+    apellidosAlumnoInput.value = '';
+    correoAlumnoInput.value = '';
+    contrasenaAlumnoInput.value = '';
+};
 
-        // Función para limpiar campos del formulario de Estudiante
-        const limpiarCamposEstudiante = () => {
-            codigoAlumnoInput.value = '';
-            correoAlumnoInput.value = '';
-            nombresAlumnoInput.value = '';
-            apellidosAlumnoInput.value = '';
-            contrasenaAlumnoInput.value = '';
-            codigoAlumnoInput.value = '';
-        };
-        
-        
-        // Evento al hacer clic en el botón Limpiar Profesor
-        btnLimpiarProfesor.addEventListener('click', () => {
-            limpiarCamposProfesor();
-        });
+// Evento al hacer clic en el botón Limpiar Profesor
+btnLimpiarProfesor.addEventListener('click', () => {
+    limpiarCamposProfesor();
+});
 
-        // Evento al hacer clic en el botón Limpiar Estudiante
-        btnLimpiarEstudiante.addEventListener('click', () => {
-            limpiarCamposEstudiante();
-        });
+// Evento al hacer clic en el botón Limpiar Estudiante
+btnLimpiarEstudiante.addEventListener('click', () => {
+    limpiarCamposEstudiante();
+});
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
